@@ -1,5 +1,5 @@
 """
-Роутер для работы со списками для чтения
+Router for working with reading lists
 """
 
 from typing import List
@@ -23,7 +23,7 @@ async def get_reading_lists(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Получение списков для чтения текущего пользователя"""
+    """Get current user's reading lists"""
     reading_lists = db.query(ReadingList).options(
         joinedload(ReadingList.user),
         joinedload(ReadingList.items).joinedload(ReadingListItem.book)
@@ -34,7 +34,7 @@ async def get_reading_lists(
 
 @router.get("/public", response_model=List[ReadingListSchema])
 async def get_public_reading_lists(db: Session = Depends(get_db)):
-    """Получение публичных списков для чтения"""
+    """Get public reading lists"""
     reading_lists = db.query(ReadingList).options(
         joinedload(ReadingList.user),
         joinedload(ReadingList.items).joinedload(ReadingListItem.book)
@@ -49,7 +49,7 @@ async def get_reading_list(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Получение списка для чтения по ID"""
+    """Get reading list by ID"""
     reading_list = db.query(ReadingList).options(
         joinedload(ReadingList.user),
         joinedload(ReadingList.items).joinedload(ReadingListItem.book)
@@ -61,7 +61,7 @@ async def get_reading_list(
             detail="Reading list not found"
         )
     
-    # Проверяем права доступа
+    # Check access permissions
     if (reading_list.user_id != current_user.id and 
         not reading_list.is_public and 
         not current_user.is_superuser):
@@ -79,7 +79,7 @@ async def create_reading_list(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Создание списка для чтения"""
+    """Create reading list"""
     reading_list_dict = list_data.model_dump()
     reading_list_dict["user_id"] = current_user.id
     
@@ -98,7 +98,7 @@ async def update_reading_list(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Обновление списка для чтения"""
+    """Update reading list"""
     reading_list = db.query(ReadingList).filter(ReadingList.id == list_id).first()
     if not reading_list:
         raise HTTPException(
@@ -106,7 +106,7 @@ async def update_reading_list(
             detail="Reading list not found"
         )
     
-    # Проверяем права доступа
+    # Check access permissions
     if reading_list.user_id != current_user.id and not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -128,7 +128,7 @@ async def delete_reading_list(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Удаление списка для чтения"""
+    """Delete reading list"""
     reading_list = db.query(ReadingList).filter(ReadingList.id == list_id).first()
     if not reading_list:
         raise HTTPException(
@@ -136,7 +136,7 @@ async def delete_reading_list(
             detail="Reading list not found"
         )
     
-    # Проверяем права доступа
+    # Check access permissions
     if reading_list.user_id != current_user.id and not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -155,9 +155,9 @@ async def add_book_to_list(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Добавление книги в список для чтения"""
+    """Add book to reading list"""
     
-    # Проверяем существование списка
+    # Check list exists
     reading_list = db.query(ReadingList).filter(ReadingList.id == list_id).first()
     if not reading_list:
         raise HTTPException(
@@ -165,14 +165,14 @@ async def add_book_to_list(
             detail="Reading list not found"
         )
     
-    # Проверяем права доступа
+    # Check access permissions
     if reading_list.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
     
-    # Проверяем существование книги
+    # Check book exists
     book = db.query(Book).filter(Book.id == item_data.book_id).first()
     if not book:
         raise HTTPException(
@@ -180,7 +180,7 @@ async def add_book_to_list(
             detail="Book not found"
         )
     
-    # Проверяем, что книга еще не добавлена в список
+    # Check book not already in list
     existing_item = db.query(ReadingListItem).filter(
         ReadingListItem.reading_list_id == list_id,
         ReadingListItem.book_id == item_data.book_id
@@ -192,7 +192,7 @@ async def add_book_to_list(
             detail="Book already in reading list"
         )
     
-    # Добавляем книгу в список
+    # Add book to list
     item_dict = item_data.model_dump()
     item_dict["reading_list_id"] = list_id
     
@@ -210,9 +210,9 @@ async def remove_book_from_list(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Удаление книги из списка для чтения"""
+    """Remove book from reading list"""
     
-    # Проверяем существование списка
+    # Check list exists
     reading_list = db.query(ReadingList).filter(ReadingList.id == list_id).first()
     if not reading_list:
         raise HTTPException(
@@ -220,14 +220,14 @@ async def remove_book_from_list(
             detail="Reading list not found"
         )
     
-    # Проверяем права доступа
+    # Check access permissions
     if reading_list.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
     
-    # Находим элемент списка
+    # Find list item
     item = db.query(ReadingListItem).filter(
         ReadingListItem.reading_list_id == list_id,
         ReadingListItem.book_id == book_id

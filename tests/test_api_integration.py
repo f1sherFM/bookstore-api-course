@@ -1,5 +1,5 @@
 """
-Интеграционные тесты API
+API integration tests
 """
 
 import pytest
@@ -7,10 +7,10 @@ from fastapi import status
 
 
 class TestAuthenticationAPI:
-    """Тесты API аутентификации"""
+    """Authentication API tests"""
     
     def test_login_success(self, client, test_user):
-        """Тест успешного входа"""
+        """Test successful login"""
         response = client.post(
             "/auth/login",
             data={"username": test_user.username, "password": "testpass123"}
@@ -22,7 +22,7 @@ class TestAuthenticationAPI:
         assert data["token_type"] == "bearer"
     
     def test_login_wrong_password(self, client, test_user):
-        """Тест входа с неверным паролем"""
+        """Test login with wrong password"""
         response = client.post(
             "/auth/login",
             data={"username": test_user.username, "password": "wrongpassword"}
@@ -31,7 +31,7 @@ class TestAuthenticationAPI:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
     def test_login_nonexistent_user(self, client):
-        """Тест входа несуществующего пользователя"""
+        """Test login of non-existent user"""
         response = client.post(
             "/auth/login",
             data={"username": "nonexistent", "password": "password"}
@@ -40,7 +40,7 @@ class TestAuthenticationAPI:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
     def test_get_current_user(self, client, auth_headers):
-        """Тест получения текущего пользователя"""
+        """Test getting current user"""
         response = client.get("/auth/me", headers=auth_headers)
         
         assert response.status_code == status.HTTP_200_OK
@@ -50,17 +50,17 @@ class TestAuthenticationAPI:
         assert data["username"] == "testuser"
     
     def test_get_current_user_no_token(self, client):
-        """Тест получения пользователя без токена"""
+        """Test getting user without token"""
         response = client.get("/auth/me")
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 class TestUsersAPI:
-    """Тесты API пользователей"""
+    """Users API tests"""
     
     def test_create_user(self, client):
-        """Тест создания пользователя"""
+        """Test user creation"""
         user_data = {
             "email": "newuser@example.com",
             "username": "newuser",
@@ -75,12 +75,12 @@ class TestUsersAPI:
         data = response.json()
         assert data["email"] == user_data["email"]
         assert data["username"] == user_data["username"]
-        assert "hashed_password" not in data  # Пароль не должен возвращаться
+        assert "hashed_password" not in data  # Password should not be returned
     
     def test_create_user_duplicate_email(self, client, test_user):
-        """Тест создания пользователя с существующим email"""
+        """Test creating user with existing email"""
         user_data = {
-            "email": test_user.email,  # Существующий email
+            "email": test_user.email,  # Existing email
             "username": "differentuser",
             "password": "password123"
         }
@@ -91,7 +91,7 @@ class TestUsersAPI:
         assert "Email already registered" in response.json()["detail"]
     
     def test_get_users_as_admin(self, client, admin_headers):
-        """Тест получения списка пользователей админом"""
+        """Test getting user list as admin"""
         response = client.get("/api/v1/users/", headers=admin_headers)
         
         assert response.status_code == status.HTTP_200_OK
@@ -99,13 +99,13 @@ class TestUsersAPI:
         assert isinstance(data, list)
     
     def test_get_users_as_regular_user(self, client, auth_headers):
-        """Тест получения списка пользователей обычным пользователем"""
+        """Test getting user list as regular user"""
         response = client.get("/api/v1/users/", headers=auth_headers)
         
         assert response.status_code == status.HTTP_403_FORBIDDEN
     
     def test_get_user_profile(self, client, auth_headers):
-        """Тест получения собственного профиля"""
+        """Test getting own profile"""
         response = client.get("/api/v1/users/me", headers=auth_headers)
         
         assert response.status_code == status.HTTP_200_OK
@@ -114,10 +114,10 @@ class TestUsersAPI:
 
 
 class TestBooksAPI:
-    """Тесты API книг"""
+    """Books API tests"""
     
     def test_get_books_empty(self, client):
-        """Тест получения пустого списка книг"""
+        """Test getting empty book list"""
         response = client.get("/api/v1/books/")
         
         assert response.status_code == status.HTTP_200_OK
@@ -126,7 +126,7 @@ class TestBooksAPI:
         assert len(data) == 0
     
     def test_get_books_with_data(self, client, test_book):
-        """Тест получения списка книг с данными"""
+        """Test getting book list with data"""
         response = client.get("/api/v1/books/")
         
         assert response.status_code == status.HTTP_200_OK
@@ -136,7 +136,7 @@ class TestBooksAPI:
         assert data[0]["price"] == test_book.price
     
     def test_get_book_by_id(self, client, test_book):
-        """Тест получения книги по ID"""
+        """Test getting book by ID"""
         response = client.get(f"/api/v1/books/{test_book.id}")
         
         assert response.status_code == status.HTTP_200_OK
@@ -149,13 +149,13 @@ class TestBooksAPI:
         assert "review_count" in data
     
     def test_get_nonexistent_book(self, client):
-        """Тест получения несуществующей книги"""
+        """Test getting non-existent book"""
         response = client.get("/api/v1/books/999")
         
         assert response.status_code == status.HTTP_404_NOT_FOUND
     
     def test_create_book_as_admin(self, client, admin_headers, test_author, test_genre):
-        """Тест создания книги админом"""
+        """Test creating book as admin"""
         book_data = {
             "title": "New Book",
             "description": "New book description",
@@ -175,7 +175,7 @@ class TestBooksAPI:
         assert data["price"] == book_data["price"]
     
     def test_create_book_as_regular_user(self, client, auth_headers, test_author, test_genre):
-        """Тест создания книги обычным пользователем"""
+        """Test creating book as regular user"""
         book_data = {
             "title": "New Book",
             "author_ids": [test_author.id],
@@ -187,8 +187,8 @@ class TestBooksAPI:
         assert response.status_code == status.HTTP_403_FORBIDDEN
     
     def test_search_books(self, client, test_book):
-        """Тест поиска книг"""
-        # Поиск по названию
+        """Test book search"""
+        # Search by title
         response = client.get(f"/api/v1/books/?q={test_book.title}")
         
         assert response.status_code == status.HTTP_200_OK
@@ -197,15 +197,15 @@ class TestBooksAPI:
         assert data[0]["title"] == test_book.title
     
     def test_filter_books_by_price(self, client, test_book):
-        """Тест фильтрации книг по цене"""
-        # Фильтр по минимальной цене
+        """Test filtering books by price"""
+        # Filter by minimum price
         response = client.get(f"/api/v1/books/?min_price={test_book.price - 10}")
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data) == 1
         
-        # Фильтр по максимальной цене (исключающий)
+        # Filter by maximum price (excluding)
         response = client.get(f"/api/v1/books/?max_price={test_book.price - 10}")
         
         assert response.status_code == status.HTTP_200_OK
@@ -214,10 +214,10 @@ class TestBooksAPI:
 
 
 class TestAuthorsAPI:
-    """Тесты API авторов"""
+    """Authors API tests"""
     
     def test_get_authors(self, client, test_author):
-        """Тест получения списка авторов"""
+        """Test getting author list"""
         response = client.get("/api/v1/authors/")
         
         assert response.status_code == status.HTTP_200_OK
@@ -226,7 +226,7 @@ class TestAuthorsAPI:
         assert data[0]["name"] == test_author.name
     
     def test_get_author_by_id(self, client, test_author):
-        """Тест получения автора по ID"""
+        """Test getting author by ID"""
         response = client.get(f"/api/v1/authors/{test_author.id}")
         
         assert response.status_code == status.HTTP_200_OK
@@ -235,7 +235,7 @@ class TestAuthorsAPI:
         assert data["name"] == test_author.name
     
     def test_create_author_as_admin(self, client, admin_headers):
-        """Тест создания автора админом"""
+        """Test creating author as admin"""
         author_data = {
             "name": "New Author",
             "biography": "New author biography",
@@ -249,7 +249,7 @@ class TestAuthorsAPI:
         assert data["name"] == author_data["name"]
     
     def test_create_author_as_regular_user(self, client, auth_headers):
-        """Тест создания автора обычным пользователем"""
+        """Test creating author as regular user"""
         author_data = {"name": "New Author"}
         
         response = client.post("/api/v1/authors/", json=author_data, headers=auth_headers)
@@ -258,10 +258,10 @@ class TestAuthorsAPI:
 
 
 class TestGenresAPI:
-    """Тесты API жанров"""
+    """Genres API tests"""
     
     def test_get_genres(self, client, test_genre):
-        """Тест получения списка жанров"""
+        """Test getting genre list"""
         response = client.get("/api/v1/genres/")
         
         assert response.status_code == status.HTTP_200_OK
@@ -270,7 +270,7 @@ class TestGenresAPI:
         assert data[0]["name"] == test_genre.name
     
     def test_create_genre_as_admin(self, client, admin_headers):
-        """Тест создания жанра админом"""
+        """Test creating genre as admin"""
         genre_data = {
             "name": "New Genre",
             "description": "New genre description"
@@ -283,9 +283,9 @@ class TestGenresAPI:
         assert data["name"] == genre_data["name"]
     
     def test_create_duplicate_genre(self, client, admin_headers, test_genre):
-        """Тест создания дублирующего жанра"""
+        """Test creating duplicate genre"""
         genre_data = {
-            "name": test_genre.name,  # Существующее название
+            "name": test_genre.name,  # Existing name
             "description": "Different description"
         }
         

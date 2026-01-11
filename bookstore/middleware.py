@@ -1,5 +1,5 @@
 """
-Middleware для BookStore API
+Middleware for BookStore API
 """
 
 import time
@@ -20,17 +20,17 @@ from .config import settings
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    """Middleware для логирования HTTP запросов"""
+    """Middleware for logging HTTP requests"""
     
     def __init__(self, app: ASGIApp):
         super().__init__(app)
         self.logger = get_logger("bookstore.middleware")
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # Генерируем уникальный ID для запроса
+        # Generate unique ID for request
         request_id = str(uuid.uuid4())
         
-        # Получаем информацию о запросе
+        # Get request information
         start_time = time.time()
         method = request.method
         url = str(request.url)
@@ -38,16 +38,16 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         user_agent = request.headers.get("user-agent", "")
         ip_address = request.client.host if request.client else "unknown"
         
-        # Устанавливаем контекст для логирования
+        # Set logging context
         set_request_context(request_id)
         
-        # Добавляем request_id в headers ответа
+        # Add request_id to response headers
         response = None
         status_code = 500
         error_message = None
         
         try:
-            # Логируем начало запроса
+            # Log request start
             self.logger.info(f"Request started: {method} {path}", extra={
                 'extra_fields': {
                     'request_id': request_id,
@@ -60,7 +60,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 }
             })
             
-            # Выполняем запрос
+            # Execute request
             response = await call_next(request)
             status_code = response.status_code
             
@@ -78,7 +78,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 }
             }, exc_info=True)
             
-            # Возвращаем JSON ошибку
+            # Return JSON error
             response = JSONResponse(
                 status_code=500,
                 content={
@@ -89,15 +89,15 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             )
         
         finally:
-            # Вычисляем время выполнения
+            # Calculate execution time
             duration_ms = (time.time() - start_time) * 1000
             
-            # Добавляем headers в ответ
+            # Add headers to response
             if response:
                 response.headers["X-Request-ID"] = request_id
                 response.headers["X-Response-Time"] = f"{duration_ms:.2f}ms"
             
-            # Логируем завершение запроса
+            # Log request completion
             log_api_request(
                 endpoint=path,
                 method=method,
@@ -106,39 +106,39 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 error=error_message
             )
             
-            # Очищаем контекст
+            # Clear context
             clear_request_context()
         
         return response
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Middleware для ограничения частоты запросов"""
+    """Middleware for request rate limiting"""
     
     def __init__(self, app: ASGIApp):
         super().__init__(app)
         self.logger = get_logger("bookstore.ratelimit")
-        self.requests = {}  # Простое in-memory хранилище (в production использовать Redis)
+        self.requests = {}  # Simple in-memory storage (use Redis in production)
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         if not settings.is_production:
-            # В development режиме пропускаем rate limiting
+            # Skip rate limiting in development mode
             return await call_next(request)
         
         ip_address = request.client.host if request.client else "unknown"
         path = request.url.path
         current_time = time.time()
         
-        # Определяем лимит в зависимости от endpoint
+        # Determine limit based on endpoint
         if path.startswith("/auth/"):
             rate_limit = settings.auth_rate_limit_per_minute
         else:
             rate_limit = settings.rate_limit_per_minute
         
-        # Ключ для отслеживания запросов
+        # Key for tracking requests
         key = f"{ip_address}:{path}"
         
-        # Очищаем старые записи (старше 1 минуты)
+        # Clean old entries (older than 1 minute)
         if key in self.requests:
             self.requests[key] = [
                 timestamp for timestamp in self.requests[key]
@@ -147,7 +147,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         else:
             self.requests[key] = []
         
-        # Проверяем лимит
+        # Check limit
         if len(self.requests[key]) >= rate_limit:
             self.logger.warning(f"Rate limit exceeded for {ip_address}", extra={
                 'extra_fields': {
@@ -169,14 +169,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 headers={"Retry-After": "60"}
             )
         
-        # Добавляем текущий запрос
+        # Add current request
         self.requests[key].append(current_time)
         
         return await call_next(request)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """Middleware для добавления security headers"""
+    """Middleware for adding security headers"""
     
     def __init__(self, app: ASGIApp):
         super().__init__(app)
@@ -184,7 +184,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         response = await call_next(request)
         
-        # Добавляем security headers
+        # Add security headers
         security_headers = {
             "X-Content-Type-Options": "nosniff",
             "X-Frame-Options": "DENY",
@@ -193,7 +193,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
         }
         
-        # В production добавляем HSTS
+        # Add HSTS in production
         if settings.is_production:
             security_headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         
@@ -204,7 +204,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 class MetricsMiddleware(BaseHTTPMiddleware):
-    """Middleware для сбора метрик (упрощенная версия)"""
+    """Middleware for metrics collection (simplified version)"""
     
     def __init__(self, app: ASGIApp):
         super().__init__(app)
@@ -229,7 +229,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         duration_ms = (time.time() - start_time) * 1000
         status_code = response.status_code
         
-        # Обновляем метрики
+        # Update metrics
         self.metrics["requests_total"] += 1
         
         if status_code not in self.metrics["requests_by_status"]:
@@ -243,11 +243,11 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         
         self.metrics["response_times"].append(duration_ms)
         
-        # Ограничиваем размер массива времен ответа
+        # Limit response times array size
         if len(self.metrics["response_times"]) > 1000:
             self.metrics["response_times"] = self.metrics["response_times"][-1000:]
         
-        # Логируем метрики каждые 100 запросов
+        # Log metrics every 100 requests
         if self.metrics["requests_total"] % 100 == 0:
             avg_response_time = sum(self.metrics["response_times"]) / len(self.metrics["response_times"])
             
@@ -263,7 +263,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         return response
     
     def get_metrics(self) -> dict:
-        """Получение текущих метрик"""
+        """Get current metrics"""
         if not self.metrics["response_times"]:
             return self.metrics
         

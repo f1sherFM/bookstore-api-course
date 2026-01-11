@@ -1,30 +1,30 @@
-# 🚀 CI/CD Setup для BookStore API
+# 🚀 CI/CD Setup for BookStore API
 
-## Обзор
+## Overview
 
-Полная автоматизация CI/CD пайплайна с использованием GitHub Actions для тестирования, сборки, security сканирования и развертывания BookStore API.
+Complete CI/CD pipeline automation using GitHub Actions for testing, building, security scanning, and deployment of BookStore API.
 
-## Структура Workflows
+## Workflow Structure
 
 ```
 .github/workflows/
-├── ci.yml              # Основной CI/CD пайплайн
-├── dependencies.yml    # Управление зависимостями
-└── performance.yml     # Тестирование производительности
+├── ci.yml              # Main CI/CD pipeline
+├── dependencies.yml    # Dependency management
+└── performance.yml     # Performance testing
 ```
 
-## Основной CI/CD Pipeline (ci.yml)
+## Main CI/CD Pipeline (ci.yml)
 
-### Этапы пайплайна
+### Pipeline Stages
 
-1. **Test** - Тестирование и линтинг
-2. **Security** - Сканирование безопасности
-3. **Build** - Сборка Docker образа
-4. **Deploy Staging** - Развертывание в staging
-5. **Deploy Production** - Развертывание в production
-6. **Notify** - Уведомления о результатах
+1. **Test** - Testing and linting
+2. **Security** - Security scanning
+3. **Build** - Docker image building
+4. **Deploy Staging** - Staging deployment
+5. **Deploy Production** - Production deployment
+6. **Notify** - Result notifications
 
-### Триггеры
+### Triggers
 
 ```yaml
 on:
@@ -34,7 +34,7 @@ on:
     branches: [ main ]
 ```
 
-### Этап 1: Тестирование
+### Stage 1: Testing
 
 ```yaml
 services:
@@ -55,30 +55,30 @@ steps:
   - Generate coverage report
 ```
 
-**Инструменты качества кода:**
-- **Black**: Форматирование кода
-- **isort**: Сортировка импортов
-- **flake8**: Линтинг кода
-- **mypy**: Проверка типов
-- **pytest**: Тестирование
-- **coverage**: Покрытие кода
+**Code quality tools:**
+- **Black**: Code formatting
+- **isort**: Import sorting
+- **flake8**: Code linting
+- **mypy**: Type checking
+- **pytest**: Testing
+- **coverage**: Code coverage
 
-### Этап 2: Security Сканирование
+### Stage 2: Security Scanning
 
 ```yaml
 steps:
-  - safety check (зависимости)
-  - bandit (код Python)
-  - semgrep (статический анализ)
+  - safety check (dependencies)
+  - bandit (Python code)
+  - semgrep (static analysis)
   - Upload security reports
 ```
 
-**Security инструменты:**
-- **Safety**: Проверка уязвимостей в зависимостях
-- **Bandit**: Поиск проблем безопасности в коде
-- **Semgrep**: Статический анализ безопасности
+**Security tools:**
+- **Safety**: Vulnerability checking in dependencies
+- **Bandit**: Security issue detection in code
+- **Semgrep**: Static security analysis
 
-### Этап 3: Сборка Docker
+### Stage 3: Docker Build
 
 ```yaml
 steps:
@@ -88,65 +88,65 @@ steps:
   - Cache optimization
 ```
 
-**Docker особенности:**
-- Multi-stage build для оптимизации
+**Docker features:**
+- Multi-stage build for optimization
 - Multi-platform support
-- Layer caching для ускорения
-- SBOM для отслеживания компонентов
+- Layer caching for acceleration
+- SBOM for component tracking
 
-### Этап 4: Развертывание
+### Stage 4: Deployment
 
-#### Staging (автоматическое)
-- Триггер: push в `develop` ветку
-- Автоматическое развертывание
+#### Staging (automatic)
+- Trigger: push to `develop` branch
+- Automatic deployment
 - Smoke tests
-- Уведомления
+- Notifications
 
-#### Production (с approval)
-- Триггер: push в `main` ветку
-- Требует manual approval
+#### Production (with approval)
+- Trigger: push to `main` branch
+- Requires manual approval
 - Blue-green deployment
 - Health checks
-- Создание release
+- Release creation
 
-## Управление зависимостями (dependencies.yml)
+## Dependency Management (dependencies.yml)
 
-### Автоматические обновления
+### Automatic Updates
 
 ```yaml
 schedule:
-  - cron: '0 9 * * 1'  # Каждый понедельник в 9:00
+  - cron: '0 9 * * 1'  # Every Monday at 9:00
 ```
 
-**Функции:**
-- Обновление Python зависимостей
-- Security сканирование
-- Создание Pull Request с обновлениями
-- Проверка лицензий
+**Features:**
+- Python dependency updates
+- Security scanning
+- Pull Request creation with updates
+- License checking
 
-### Инструменты
+### Tools
 
-- **pip-tools**: Управление зависимостями
-- **safety**: Проверка уязвимостей
-- **Trivy**: Сканирование Docker образов
-- **Snyk**: Дополнительное security сканирование
+- **pip-tools**: Dependency management
+- **safety**: Vulnerability checking
+- **Trivy**: Docker image scanning
+- **Snyk**: Additional security scanning
 
 ## Performance Testing (performance.yml)
 
-### Нагрузочное тестирование
+### Load Testing
 
 ```yaml
 schedule:
-  - cron: '0 2 * * *'  # Каждый день в 2:00
+  - cron: '0 2 * * *'  # Every day at 2:00
 ```
 
-**Возможности:**
-- Load testing с Locust
+**Capabilities:**
+- Load testing with Locust
 - Uptime monitoring
 - Metrics analysis
 - Performance reports
 
-### Locust конфигурация
+### Locust Configuration
 
 ```python
 class BookStoreUser(HttpUser):
@@ -162,7 +162,7 @@ class BookStoreUser(HttpUser):
         self.client.get(f"/api/v1/books/{book_id}")
 ```
 
-## Конфигурация проекта
+## Project Configuration
 
 ### pyproject.toml
 
@@ -197,14 +197,14 @@ ignore = E203,E501,W503
 exclude = .git,__pycache__,.venv,build,dist
 ```
 
-## Environments и Secrets
+## Environments and Secrets
 
 ### GitHub Environments
 
 1. **staging**
-   - Автоматическое развертывание
+   - Automatic deployment
    - Staging URL
-   - Тестовые данные
+   - Test data
 
 2. **production**
    - Manual approval required
@@ -215,14 +215,14 @@ exclude = .git,__pycache__,.venv,build,dist
 
 ```yaml
 secrets:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Автоматически
-  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}      # Для Snyk сканирования
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Automatic
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}      # For Snyk scanning
   DOCKER_REGISTRY_TOKEN: ${{ secrets.DOCKER_REGISTRY_TOKEN }}
 ```
 
-## Мониторинг и Алерты
+## Monitoring and Alerts
 
-### Метрики пайплайна
+### Pipeline Metrics
 
 - Build time
 - Test success rate
@@ -230,56 +230,56 @@ secrets:
 - Deployment frequency
 - Lead time for changes
 
-### Уведомления
+### Notifications
 
-- ✅ Успешные deployments
-- ❌ Неудачные builds
+- ✅ Successful deployments
+- ❌ Failed builds
 - ⚠️ Security vulnerabilities
 - 📊 Performance degradation
 
-## Качественные гейты
+## Quality Gates
 
-### Обязательные проверки
+### Mandatory Checks
 
-- ✅ Все тесты должны пройти
+- ✅ All tests must pass
 - ✅ Coverage > 80%
-- ✅ Security scan без критических уязвимостей
-- ✅ Linting без ошибок
-- ✅ Type checking без ошибок
+- ✅ Security scan without critical vulnerabilities
+- ✅ Linting without errors
+- ✅ Type checking without errors
 
-### Performance критерии
+### Performance Criteria
 
 - ⚡ Average response time < 500ms
 - 📈 95th percentile < 1000ms
 - ❌ Error rate < 1%
 - 🔄 Throughput > 100 RPS
 
-## Локальная разработка
+## Local Development
 
 ### Pre-commit hooks
 
 ```bash
-# Установка pre-commit
+# Install pre-commit
 pip install pre-commit
 pre-commit install
 
-# Запуск проверок
+# Run checks
 pre-commit run --all-files
 ```
 
-### Локальное тестирование
+### Local Testing
 
 ```bash
-# Полный набор тестов
+# Full test suite
 make test
 
-# Только unit тесты
+# Unit tests only
 make test-unit
 
-# Только integration тесты
+# Integration tests only
 make test-integration
 
-# Performance тесты
+# Performance tests
 make test-performance
 
 # Linting
@@ -291,58 +291,58 @@ make security-scan
 
 ## Troubleshooting
 
-### Частые проблемы
+### Common Issues
 
-1. **Тесты падают в CI, но проходят локально**
-   - Проверить переменные окружения
-   - Убедиться в версиях зависимостей
-   - Проверить services (postgres, redis)
+1. **Tests fail in CI but pass locally**
+   - Check environment variables
+   - Ensure dependency versions match
+   - Check services (postgres, redis)
 
 2. **Docker build fails**
-   - Проверить .dockerignore
-   - Убедиться в корректности Dockerfile
-   - Проверить размер контекста
+   - Check .dockerignore
+   - Ensure Dockerfile correctness
+   - Check context size
 
-3. **Security scan находит уязвимости**
-   - Обновить зависимости
-   - Проверить safety-db
-   - Исключить false positives
+3. **Security scan finds vulnerabilities**
+   - Update dependencies
+   - Check safety-db
+   - Exclude false positives
 
-### Отладка
+### Debugging
 
 ```bash
-# Локальный запуск GitHub Actions
+# Run GitHub Actions locally
 act -j test
 
-# Проверка Docker build
+# Check Docker build
 docker build -t bookstore-api:test .
 
-# Локальный security scan
+# Local security scan
 bandit -r bookstore/
 safety check
 ```
 
-## Метрики и KPI
+## Metrics and KPIs
 
-### DevOps метрики
+### DevOps Metrics
 
-- **Deployment Frequency**: Ежедневно
-- **Lead Time**: < 2 часа
-- **MTTR**: < 30 минут
+- **Deployment Frequency**: Daily
+- **Lead Time**: < 2 hours
+- **MTTR**: < 30 minutes
 - **Change Failure Rate**: < 5%
 
-### Quality метрики
+### Quality Metrics
 
 - **Test Coverage**: > 90%
 - **Code Quality**: A grade
 - **Security Score**: > 95%
 - **Performance**: SLA compliance
 
-## Следующие шаги
+## Next Steps
 
-1. ✅ **CI/CD Pipeline** - реализован
-2. 🔄 **Monitoring Integration** - в процессе
-3. ⏳ **Advanced Security** - планируется
-4. ⏳ **Multi-environment** - планируется
+1. ✅ **CI/CD Pipeline** - implemented
+2. 🔄 **Monitoring Integration** - in progress
+3. ⏳ **Advanced Security** - planned
+4. ⏳ **Multi-environment** - planned
 
-Система CI/CD готова к production использованию! 🚀
+The CI/CD system is ready for production use! 🚀

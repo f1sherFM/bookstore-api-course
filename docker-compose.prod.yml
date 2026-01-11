@@ -58,7 +58,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backups:/backups
-      - ./init-prod.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./database/init-prod.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - bookstore-network
     deploy:
@@ -95,7 +95,7 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
-      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
     networks:
       - bookstore-network
     deploy:
@@ -121,7 +121,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx-prod.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
       - ./logs/nginx:/var/log/nginx
     depends_on:
@@ -147,7 +147,7 @@ services:
     image: prom/prometheus:latest
     restart: unless-stopped
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
       - bookstore-network
@@ -188,7 +188,7 @@ services:
     image: grafana/loki:latest
     restart: unless-stopped
     volumes:
-      - ./loki.yml:/etc/loki/local-config.yaml:ro
+      - ./config/loki.yml:/etc/loki/local-config.yaml:ro
       - loki_data:/loki
     networks:
       - bookstore-network
@@ -199,7 +199,7 @@ services:
     image: grafana/promtail:latest
     restart: unless-stopped
     volumes:
-      - ./promtail.yml:/etc/promtail/config.yml:ro
+      - ./config/promtail.yml:/etc/promtail/config.yml:ro
       - ./logs:/var/log/app:ro
       - /var/log:/var/log/host:ro
     networks:
@@ -216,7 +216,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - ./backups:/backups
-      - ./backup-script.sh:/backup-script.sh:ro
+      - ./scripts/backup-script.sh:/backup-script.sh:ro
     networks:
       - bookstore-network
     depends_on:

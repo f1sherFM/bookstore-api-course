@@ -1,5 +1,5 @@
 """
-Роутер для работы с книгами
+Router for working with books
 """
 
 from typing import List, Optional
@@ -25,14 +25,14 @@ def get_books_query(
     sort_by: BookSortBy = BookSortBy.CREATED_AT,
     sort_order: SortOrder = SortOrder.DESC
 ):
-    """Базовый запрос для получения книг с фильтрацией и сортировкой"""
+    """Base query for getting books with filtering and sorting"""
     query = db.query(Book).options(
         joinedload(Book.authors),
         joinedload(Book.genres)
     )
     
     if search_params:
-        # Поиск по названию и описанию
+        # Search by title and description
         if search_params.q:
             search_term = f"%{search_params.q}%"
             query = query.filter(
@@ -42,34 +42,34 @@ def get_books_query(
                 )
             )
         
-        # Фильтр по автору
+        # Filter by author
         if search_params.author:
             query = query.join(Book.authors).filter(
                 Author.name.ilike(f"%{search_params.author}%")
             )
         
-        # Фильтр по жанру
+        # Filter by genre
         if search_params.genre:
             query = query.join(Book.genres).filter(
                 Genre.name.ilike(f"%{search_params.genre}%")
             )
         
-        # Фильтр по цене
+        # Filter by price
         if search_params.min_price is not None:
             query = query.filter(Book.price >= search_params.min_price)
         
         if search_params.max_price is not None:
             query = query.filter(Book.price <= search_params.max_price)
         
-        # Фильтр по языку
+        # Filter by language
         if search_params.language:
             query = query.filter(Book.language == search_params.language)
         
-        # Только доступные книги
+        # Only available books
         if search_params.available_only:
             query = query.filter(Book.is_available == True)
     
-    # Сортировка
+    # Sorting
     if sort_by == BookSortBy.TITLE:
         order_field = Book.title
     elif sort_by == BookSortBy.PRICE:
@@ -77,7 +77,7 @@ def get_books_query(
     elif sort_by == BookSortBy.PUBLICATION_DATE:
         order_field = Book.publication_date
     elif sort_by == BookSortBy.RATING:
-        # Сортировка по рейтингу требует подзапроса
+        # Sorting by rating requires subquery
         avg_rating = db.query(func.avg(Review.rating)).filter(Review.book_id == Book.id).scalar_subquery()
         order_field = avg_rating
     else:
@@ -94,19 +94,19 @@ def get_books_query(
 @router.get("/", response_model=List[BookSchema])
 async def get_books(
     db: Session = Depends(get_db),
-    q: Optional[str] = Query(None, description="Поисковый запрос"),
-    author: Optional[str] = Query(None, description="Имя автора"),
-    genre: Optional[str] = Query(None, description="Жанр"),
-    min_price: Optional[float] = Query(None, ge=0, description="Минимальная цена"),
-    max_price: Optional[float] = Query(None, ge=0, description="Максимальная цена"),
-    language: Optional[str] = Query(None, description="Язык"),
-    available_only: bool = Query(True, description="Только доступные книги"),
-    sort_by: BookSortBy = Query(BookSortBy.CREATED_AT, description="Поле для сортировки"),
-    sort_order: SortOrder = Query(SortOrder.DESC, description="Порядок сортировки"),
-    page: int = Query(1, ge=1, description="Номер страницы"),
-    size: int = Query(20, ge=1, le=100, description="Размер страницы")
+    q: Optional[str] = Query(None, description="Search query"),
+    author: Optional[str] = Query(None, description="Author name"),
+    genre: Optional[str] = Query(None, description="Genre"),
+    min_price: Optional[float] = Query(None, ge=0, description="Minimum price"),
+    max_price: Optional[float] = Query(None, ge=0, description="Maximum price"),
+    language: Optional[str] = Query(None, description="Language"),
+    available_only: bool = Query(True, description="Only available books"),
+    sort_by: BookSortBy = Query(BookSortBy.CREATED_AT, description="Sort field"),
+    sort_order: SortOrder = Query(SortOrder.DESC, description="Sort order"),
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(20, ge=1, le=100, description="Page size")
 ):
-    """Получение списка книг с поиском и фильтрацией"""
+    """Get list of books with search and filtering"""
     search_params = BookSearchParams(
         q=q, author=author, genre=genre,
         min_price=min_price, max_price=max_price,
@@ -115,7 +115,7 @@ async def get_books(
     
     query = get_books_query(db, search_params, sort_by, sort_order)
     
-    # Пагинация
+    # Pagination
     offset = (page - 1) * size
     books = query.offset(offset).limit(size).all()
     
@@ -127,13 +127,13 @@ async def get_books_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    """Получение статистики по книгам"""
+    """Get book statistics"""
     total_books = db.query(Book).count()
     available_books = db.query(Book).filter(Book.is_available == True).count()
     total_authors = db.query(Author).count()
     total_genres = db.query(Genre).count()
     
-    # Средняя цена
+    # Average price
     avg_price = db.query(func.avg(Book.price)).filter(Book.price.isnot(None)).scalar()
     
     return {
@@ -147,7 +147,7 @@ async def get_books_stats(
 
 @router.get("/{book_id}", response_model=BookWithStats)
 async def get_book(book_id: int, db: Session = Depends(get_db)):
-    """Получение книги по ID"""
+    """Get book by ID"""
     book = db.query(Book).options(
         joinedload(Book.authors),
         joinedload(Book.genres),
@@ -160,12 +160,12 @@ async def get_book(book_id: int, db: Session = Depends(get_db)):
             detail="Book not found"
         )
     
-    # Вычисляем статистику
+    # Calculate statistics
     reviews = book.reviews
     review_count = len(reviews)
     average_rating = sum(review.rating for review in reviews) / review_count if review_count > 0 else None
     
-    # Создаем объект с дополнительными полями
+    # Create object with additional fields
     book_dict = {
         **book.__dict__,
         "authors": book.authors,
@@ -183,9 +183,9 @@ async def create_book(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """Создание новой книги (только для суперпользователей)"""
+    """Create new book (superusers only)"""
     
-    # Проверяем существование авторов
+    # Check authors exist
     authors = db.query(Author).filter(Author.id.in_(book_data.author_ids)).all()
     if len(authors) != len(book_data.author_ids):
         raise HTTPException(
@@ -193,7 +193,7 @@ async def create_book(
             detail="One or more authors not found"
         )
     
-    # Проверяем существование жанров
+    # Check genres exist
     genres = db.query(Genre).filter(Genre.id.in_(book_data.genre_ids)).all()
     if len(genres) != len(book_data.genre_ids):
         raise HTTPException(
@@ -201,7 +201,7 @@ async def create_book(
             detail="One or more genres not found"
         )
     
-    # Проверяем уникальность ISBN
+    # Check ISBN uniqueness
     if book_data.isbn:
         existing_book = db.query(Book).filter(Book.isbn == book_data.isbn).first()
         if existing_book:
@@ -210,11 +210,11 @@ async def create_book(
                 detail="Book with this ISBN already exists"
             )
     
-    # Создаем книгу
+    # Create book
     book_dict = book_data.model_dump(exclude={"author_ids", "genre_ids"})
     book = Book(**book_dict)
     
-    # Добавляем авторов и жанры
+    # Add authors and genres
     book.authors = authors
     book.genres = genres
     
@@ -232,7 +232,7 @@ async def update_book(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """Обновление книги (только для суперпользователей)"""
+    """Update book (superusers only)"""
     
     book = db.query(Book).filter(Book.id == book_id).first()
     if not book:
@@ -241,13 +241,13 @@ async def update_book(
             detail="Book not found"
         )
     
-    # Обновляем поля
+    # Update fields
     update_data = book_data.model_dump(exclude_unset=True, exclude={"author_ids", "genre_ids"})
     
     for field, value in update_data.items():
         setattr(book, field, value)
     
-    # Обновляем авторов, если указаны
+    # Update authors if specified
     if book_data.author_ids is not None:
         authors = db.query(Author).filter(Author.id.in_(book_data.author_ids)).all()
         if len(authors) != len(book_data.author_ids):
@@ -257,7 +257,7 @@ async def update_book(
             )
         book.authors = authors
     
-    # Обновляем жанры, если указаны
+    # Update genres if specified
     if book_data.genre_ids is not None:
         genres = db.query(Genre).filter(Genre.id.in_(book_data.genre_ids)).all()
         if len(genres) != len(book_data.genre_ids):
@@ -279,7 +279,7 @@ async def delete_book(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """Удаление книги (только для суперпользователей)"""
+    """Delete book (superusers only)"""
     
     book = db.query(Book).filter(Book.id == book_id).first()
     if not book:

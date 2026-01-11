@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Создание тестовых данных для BookStore API
+Create test data for BookStore API
 """
 
 from bookstore.database import SessionLocal
@@ -8,21 +8,21 @@ from bookstore.models import User, Author, Genre, Book
 from bookstore.auth import get_password_hash
 
 def create_test_data():
-    """Создание тестовых данных"""
+    """Create test data"""
     db = SessionLocal()
     try:
-        # Проверяем, есть ли уже данные
+        # Check if data already exists
         if db.query(User).first():
-            print("Данные уже существуют")
+            print("Data already exists")
             return
         
-        print("Создание тестовых данных...")
+        print("Creating test data...")
         
-        # Создаем пользователей
+        # Create users
         admin_user = User(
             email="admin@bookstore.com",
             username="admin",
-            full_name="Администратор",
+            full_name="Administrator",
             hashed_password=get_password_hash("admin123"),
             is_active=True,
             is_superuser=True
@@ -32,78 +32,78 @@ def create_test_data():
         regular_user = User(
             email="user@example.com",
             username="testuser",
-            full_name="Тестовый пользователь",
+            full_name="Test User",
             hashed_password=get_password_hash("password123"),
             is_active=True,
             is_superuser=False
         )
         db.add(regular_user)
         
-        # Создаем авторов
+        # Create authors
         authors = [
-            Author(name="Лев Толстой", biography="Русский писатель", nationality="Россия"),
-            Author(name="Федор Достоевский", biography="Русский писатель", nationality="Россия"),
-            Author(name="Александр Пушкин", biography="Русский поэт", nationality="Россия")
+            Author(name="Leo Tolstoy", biography="Russian writer", nationality="Russia"),
+            Author(name="Fyodor Dostoevsky", biography="Russian writer", nationality="Russia"),
+            Author(name="Alexander Pushkin", biography="Russian poet", nationality="Russia")
         ]
         
         for author in authors:
             db.add(author)
         
-        # Создаем жанры
+        # Create genres
         genres = [
-            Genre(name="Классическая литература", description="Произведения классиков"),
-            Genre(name="Роман", description="Эпический жанр"),
-            Genre(name="Поэзия", description="Стихотворные произведения")
+            Genre(name="Classic Literature", description="Works by classic authors"),
+            Genre(name="Novel", description="Epic genre"),
+            Genre(name="Poetry", description="Poetic works")
         ]
         
         for genre in genres:
             db.add(genre)
         
-        # Сохраняем, чтобы получить ID
+        # Save to get IDs
         db.commit()
         
-        # Создаем книги
+        # Create books
         book1 = Book(
-            title="Война и мир",
-            description="Роман-эпопея о русском обществе",
+            title="War and Peace",
+            description="Epic novel about Russian society",
             page_count=1300,
-            language="ru",
+            language="en",
             price=599.99,
             is_available=True
         )
-        book1.authors = [authors[0]]  # Лев Толстой
-        book1.genres = [genres[0], genres[1]]  # Классика, Роман
+        book1.authors = [authors[0]]  # Leo Tolstoy
+        book1.genres = [genres[0], genres[1]]  # Classic, Novel
         db.add(book1)
         
         book2 = Book(
-            title="Преступление и наказание",
-            description="Психологический роман",
+            title="Crime and Punishment",
+            description="Psychological novel",
             page_count=671,
-            language="ru",
+            language="en",
             price=449.99,
             is_available=True
         )
-        book2.authors = [authors[1]]  # Достоевский
-        book2.genres = [genres[0], genres[1]]  # Классика, Роман
+        book2.authors = [authors[1]]  # Dostoevsky
+        book2.genres = [genres[0], genres[1]]  # Classic, Novel
         db.add(book2)
         
         book3 = Book(
-            title="Евгений Онегин",
-            description="Роман в стихах",
+            title="Eugene Onegin",
+            description="Novel in verse",
             page_count=384,
-            language="ru",
+            language="en",
             price=299.99,
             is_available=True
         )
-        book3.authors = [authors[2]]  # Пушкин
-        book3.genres = [genres[0], genres[2]]  # Классика, Поэзия
+        book3.authors = [authors[2]]  # Pushkin
+        book3.genres = [genres[0], genres[2]]  # Classic, Poetry
         db.add(book3)
         
         db.commit()
-        print("✅ Тестовые данные созданы успешно!")
+        print("✅ Test data created successfully!")
         
     except Exception as e:
-        print(f"❌ Ошибка: {e}")
+        print(f"❌ Error: {e}")
         db.rollback()
     finally:
         db.close()

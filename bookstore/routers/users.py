@@ -1,5 +1,5 @@
 """
-Роутер для работы с пользователями
+Router for working with users
 """
 
 from typing import List
@@ -23,7 +23,7 @@ async def get_users(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_superuser)
 ):
-    """Получение списка пользователей (только для суперпользователей)"""
+    """Get list of users (superusers only)"""
     users = db.query(UserModel).all()
     return users
 
@@ -32,7 +32,7 @@ async def get_users(
 async def get_current_user_info(
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Получение информации о текущем пользователе"""
+    """Get current user information"""
     return current_user
 
 
@@ -42,7 +42,7 @@ async def get_user(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Получение пользователя по ID"""
+    """Get user by ID"""
     if not check_user_permissions(current_user, user_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -63,23 +63,23 @@ async def create_user(
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ):
-    """Регистрация нового пользователя"""
+    """Register new user"""
     
-    # Проверяем уникальность email
+    # Check email uniqueness
     if get_user_by_email(db, user_data.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
     
-    # Проверяем уникальность username
+    # Check username uniqueness
     if get_user_by_username(db, user_data.username):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already taken"
         )
     
-    # Создаем пользователя
+    # Create user
     user_dict = user_data.model_dump(exclude={"password"})
     user_dict["hashed_password"] = get_password_hash(user_data.password)
     
@@ -98,7 +98,7 @@ async def update_user(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Обновление пользователя"""
+    """Update user"""
     if not check_user_permissions(current_user, user_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -114,7 +114,7 @@ async def update_user(
     
     update_data = user_data.model_dump(exclude_unset=True)
     
-    # Проверяем уникальность email, если он изменяется
+    # Check email uniqueness if changed
     if "email" in update_data and update_data["email"] != user.email:
         if get_user_by_email(db, update_data["email"]):
             raise HTTPException(
@@ -122,7 +122,7 @@ async def update_user(
                 detail="Email already registered"
             )
     
-    # Проверяем уникальность username, если он изменяется
+    # Check username uniqueness if changed
     if "username" in update_data and update_data["username"] != user.username:
         if get_user_by_username(db, update_data["username"]):
             raise HTTPException(
@@ -144,7 +144,7 @@ async def delete_user(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_superuser)
 ):
-    """Удаление пользователя (только для суперпользователей)"""
+    """Delete user (superusers only)"""
     user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
         raise HTTPException(

@@ -1,5 +1,5 @@
 """
-Pydantic схемы для валидации данных
+Pydantic schemas for data validation
 """
 
 from pydantic import BaseModel, EmailStr, Field
@@ -8,16 +8,16 @@ from datetime import datetime
 from enum import Enum
 
 
-# Базовые схемы
+# Base schemas
 class TimestampMixin(BaseModel):
-    """Миксин для временных меток"""
+    """Mixin for timestamps"""
     created_at: datetime
     updated_at: Optional[datetime] = None
 
 
-# Пользователи
+# Users
 class UserBase(BaseModel):
-    """Базовая схема пользователя"""
+    """Base user schema"""
     email: EmailStr
     username: str = Field(..., min_length=3, max_length=50)
     full_name: Optional[str] = Field(None, max_length=255)
@@ -25,12 +25,12 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    """Схема для создания пользователя"""
+    """Schema for user creation"""
     password: str = Field(..., min_length=8, max_length=100)
 
 
 class UserUpdate(BaseModel):
-    """Схема для обновления пользователя"""
+    """Schema for user update"""
     email: Optional[EmailStr] = None
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     full_name: Optional[str] = Field(None, max_length=255)
@@ -38,7 +38,7 @@ class UserUpdate(BaseModel):
 
 
 class UserInDB(UserBase, TimestampMixin):
-    """Схема пользователя в БД"""
+    """User schema in DB"""
     class Config:
         from_attributes = True
     
@@ -47,13 +47,13 @@ class UserInDB(UserBase, TimestampMixin):
 
 
 class User(UserInDB):
-    """Публичная схема пользователя"""
+    """Public user schema"""
     pass
 
 
-# Авторы
+# Authors
 class AuthorBase(BaseModel):
-    """Базовая схема автора"""
+    """Base author schema"""
     name: str = Field(..., min_length=1, max_length=255)
     biography: Optional[str] = None
     birth_date: Optional[datetime] = None
@@ -62,12 +62,12 @@ class AuthorBase(BaseModel):
 
 
 class AuthorCreate(AuthorBase):
-    """Схема для создания автора"""
+    """Schema for author creation"""
     pass
 
 
 class AuthorUpdate(BaseModel):
-    """Схема для обновления автора"""
+    """Schema for author update"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     biography: Optional[str] = None
     birth_date: Optional[datetime] = None
@@ -76,33 +76,33 @@ class AuthorUpdate(BaseModel):
 
 
 class Author(AuthorBase, TimestampMixin):
-    """Схема автора"""
+    """Author schema"""
     class Config:
         from_attributes = True
     
     id: int
 
 
-# Жанры
+# Genres
 class GenreBase(BaseModel):
-    """Базовая схема жанра"""
+    """Base genre schema"""
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
 
 
 class GenreCreate(GenreBase):
-    """Схема для создания жанра"""
+    """Schema for genre creation"""
     pass
 
 
 class GenreUpdate(BaseModel):
-    """Схема для обновления жанра"""
+    """Schema for genre update"""
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     description: Optional[str] = None
 
 
 class Genre(GenreBase):
-    """Схема жанра"""
+    """Genre schema"""
     class Config:
         from_attributes = True
     
@@ -110,9 +110,9 @@ class Genre(GenreBase):
     created_at: datetime
 
 
-# Книги
+# Books
 class BookBase(BaseModel):
-    """Базовая схема книги"""
+    """Base book schema"""
     title: str = Field(..., min_length=1, max_length=500)
     isbn: Optional[str] = Field(None, max_length=20)
     description: Optional[str] = None
@@ -125,13 +125,13 @@ class BookBase(BaseModel):
 
 
 class BookCreate(BookBase):
-    """Схема для создания книги"""
+    """Schema for book creation"""
     author_ids: List[int] = Field(..., min_items=1)
     genre_ids: List[int] = Field(..., min_items=1)
 
 
 class BookUpdate(BaseModel):
-    """Схема для обновления книги"""
+    """Schema for book update"""
     title: Optional[str] = Field(None, min_length=1, max_length=500)
     isbn: Optional[str] = Field(None, max_length=20)
     description: Optional[str] = None
@@ -146,7 +146,7 @@ class BookUpdate(BaseModel):
 
 
 class Book(BookBase, TimestampMixin):
-    """Схема книги"""
+    """Book schema"""
     class Config:
         from_attributes = True
     
@@ -156,33 +156,33 @@ class Book(BookBase, TimestampMixin):
 
 
 class BookWithStats(Book):
-    """Книга со статистикой"""
+    """Book with statistics"""
     average_rating: Optional[float] = None
     review_count: int = 0
 
 
-# Отзывы
+# Reviews
 class ReviewBase(BaseModel):
-    """Базовая схема отзыва"""
+    """Base review schema"""
     rating: int = Field(..., ge=1, le=5)
     title: Optional[str] = Field(None, max_length=255)
     content: Optional[str] = None
 
 
 class ReviewCreate(ReviewBase):
-    """Схема для создания отзыва"""
+    """Schema for review creation"""
     book_id: int
 
 
 class ReviewUpdate(BaseModel):
-    """Схема для обновления отзыва"""
+    """Schema for review update"""
     rating: Optional[int] = Field(None, ge=1, le=5)
     title: Optional[str] = Field(None, max_length=255)
     content: Optional[str] = None
 
 
 class Review(ReviewBase, TimestampMixin):
-    """Схема отзыва"""
+    """Review schema"""
     class Config:
         from_attributes = True
     
@@ -193,39 +193,39 @@ class Review(ReviewBase, TimestampMixin):
     book: Book
 
 
-# Списки для чтения
+# Reading lists
 class ReadingListBase(BaseModel):
-    """Базовая схема списка для чтения"""
+    """Base reading list schema"""
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     is_public: bool = False
 
 
 class ReadingListCreate(ReadingListBase):
-    """Схема для создания списка"""
+    """Schema for reading list creation"""
     pass
 
 
 class ReadingListUpdate(BaseModel):
-    """Схема для обновления списка"""
+    """Schema for reading list update"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
     is_public: Optional[bool] = None
 
 
 class ReadingListItemBase(BaseModel):
-    """Базовая схема элемента списка"""
+    """Base reading list item schema"""
     book_id: int
     notes: Optional[str] = None
 
 
 class ReadingListItemCreate(ReadingListItemBase):
-    """Схема для добавления книги в список"""
+    """Schema for adding book to list"""
     pass
 
 
 class ReadingListItem(ReadingListItemBase):
-    """Схема элемента списка"""
+    """Reading list item schema"""
     class Config:
         from_attributes = True
     
@@ -236,7 +236,7 @@ class ReadingListItem(ReadingListItemBase):
 
 
 class ReadingList(ReadingListBase, TimestampMixin):
-    """Схема списка для чтения"""
+    """Reading list schema"""
     class Config:
         from_attributes = True
     
@@ -246,44 +246,44 @@ class ReadingList(ReadingListBase, TimestampMixin):
     items: List[ReadingListItem] = []
 
 
-# Аутентификация
+# Authentication
 class Token(BaseModel):
-    """Схема токена"""
+    """Token schema"""
     access_token: str
     token_type: str = "bearer"
 
 
 class TokenData(BaseModel):
-    """Данные токена"""
+    """Token data"""
     username: Optional[str] = None
 
 
 class LoginRequest(BaseModel):
-    """Запрос на вход"""
+    """Login request"""
     username: str
     password: str
 
 
-# Поиск и фильтрация
+# Search and filtering
 class BookSearchParams(BaseModel):
-    """Параметры поиска книг"""
-    q: Optional[str] = Field(None, description="Поисковый запрос")
-    author: Optional[str] = Field(None, description="Имя автора")
-    genre: Optional[str] = Field(None, description="Жанр")
-    min_price: Optional[float] = Field(None, ge=0, description="Минимальная цена")
-    max_price: Optional[float] = Field(None, ge=0, description="Максимальная цена")
-    language: Optional[str] = Field(None, description="Язык")
-    available_only: bool = Field(True, description="Только доступные книги")
+    """Book search parameters"""
+    q: Optional[str] = Field(None, description="Search query")
+    author: Optional[str] = Field(None, description="Author name")
+    genre: Optional[str] = Field(None, description="Genre")
+    min_price: Optional[float] = Field(None, ge=0, description="Minimum price")
+    max_price: Optional[float] = Field(None, ge=0, description="Maximum price")
+    language: Optional[str] = Field(None, description="Language")
+    available_only: bool = Field(True, description="Only available books")
 
 
 class SortOrder(str, Enum):
-    """Порядок сортировки"""
+    """Sort order"""
     ASC = "asc"
     DESC = "desc"
 
 
 class BookSortBy(str, Enum):
-    """Поля для сортировки книг"""
+    """Book sorting fields"""
     TITLE = "title"
     PRICE = "price"
     PUBLICATION_DATE = "publication_date"
@@ -291,15 +291,15 @@ class BookSortBy(str, Enum):
     RATING = "rating"
 
 
-# Пагинация
+# Pagination
 class PaginationParams(BaseModel):
-    """Параметры пагинации"""
-    page: int = Field(1, ge=1, description="Номер страницы")
-    size: int = Field(20, ge=1, le=100, description="Размер страницы")
+    """Pagination parameters"""
+    page: int = Field(1, ge=1, description="Page number")
+    size: int = Field(20, ge=1, le=100, description="Page size")
 
 
 class PaginatedResponse(BaseModel):
-    """Ответ с пагинацией"""
+    """Paginated response"""
     items: List[Union[Book, Author, Genre, Review, ReadingList]]
     total: int
     page: int
@@ -307,9 +307,9 @@ class PaginatedResponse(BaseModel):
     pages: int
 
 
-# Статистика
+# Statistics
 class BookStats(BaseModel):
-    """Статистика книги"""
+    """Book statistics"""
     total_books: int
     available_books: int
     total_authors: int
@@ -318,7 +318,7 @@ class BookStats(BaseModel):
 
 
 class UserStats(BaseModel):
-    """Статистика пользователя"""
+    """User statistics"""
     total_users: int
     active_users: int
     total_reviews: int

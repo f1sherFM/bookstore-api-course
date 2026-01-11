@@ -1,1 +1,1 @@
-# Тесты для BookStore API
+# Tests for BookStore API

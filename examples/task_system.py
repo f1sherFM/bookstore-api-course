@@ -1,6 +1,6 @@
 """
-Система управления задачами - Продвинутое ООП
-Изучаем: ABC, множественное наследование, property, magic methods, context managers
+Task Management System - Advanced OOP
+Learning: ABC, multiple inheritance, property, magic methods, context managers
 """
 
 from abc import ABC, abstractmethod
@@ -11,7 +11,7 @@ import json
 
 
 class TaskStatus(Enum):
-    """Статусы задач"""
+    """Task statuses"""
     TODO = "todo"
     IN_PROGRESS = "in_progress"
     DONE = "done"
@@ -19,34 +19,34 @@ class TaskStatus(Enum):
 
 
 class Priority(Enum):
-    """Приоритеты задач"""
+    """Task priorities"""
     LOW = 1
     MEDIUM = 2
     HIGH = 3
     URGENT = 4
 
 
-# Абстрактный базовый класс
+# Abstract base class
 class BaseTask(ABC):
-    """Абстрактный базовый класс для всех задач"""
+    """Abstract base class for all tasks"""
     
     def __init__(self, title: str, description: str = ""):
         self._title = title
         self._description = description
         self._created_at = datetime.now()
         self._status = TaskStatus.TODO
-        self._id = id(self)  # Простой ID на основе адреса в памяти
+        self._id = id(self)  # Simple ID based on memory address
     
     @property
     def title(self) -> str:
-        """Геттер для заголовка"""
+        """Title getter"""
         return self._title
     
     @title.setter
     def title(self, value: str) -> None:
-        """Сеттер для заголовка с валидацией"""
+        """Title setter with validation"""
         if not value or not value.strip():
-            raise ValueError("Заголовок не может быть пустым")
+            raise ValueError("Title cannot be empty")
         self._title = value.strip()
     
     @property
@@ -71,58 +71,58 @@ class BaseTask(ABC):
     
     @abstractmethod
     def get_priority(self) -> Priority:
-        """Абстрактный метод - каждый тип задачи определяет свой приоритет"""
+        """Abstract method - each task type defines its own priority"""
         pass
     
     @abstractmethod
     def estimate_duration(self) -> timedelta:
-        """Абстрактный метод - оценка времени выполнения"""
+        """Abstract method - execution time estimate"""
         pass
     
     def start(self) -> None:
-        """Начать выполнение задачи"""
+        """Start task execution"""
         if self._status == TaskStatus.TODO:
             self._status = TaskStatus.IN_PROGRESS
         else:
-            raise ValueError(f"Нельзя начать задачу со статусом {self._status.value}")
+            raise ValueError(f"Cannot start task with status {self._status.value}")
     
     def complete(self) -> None:
-        """Завершить задачу"""
+        """Complete task"""
         if self._status == TaskStatus.IN_PROGRESS:
             self._status = TaskStatus.DONE
         else:
-            raise ValueError(f"Нельзя завершить задачу со статусом {self._status.value}")
+            raise ValueError(f"Cannot complete task with status {self._status.value}")
     
     def cancel(self) -> None:
-        """Отменить задачу"""
+        """Cancel task"""
         if self._status in [TaskStatus.TODO, TaskStatus.IN_PROGRESS]:
             self._status = TaskStatus.CANCELLED
         else:
-            raise ValueError(f"Нельзя отменить задачу со статусом {self._status.value}")
+            raise ValueError(f"Cannot cancel task with status {self._status.value}")
     
     # Magic methods
     def __str__(self) -> str:
-        """Строковое представление для пользователей"""
+        """String representation for users"""
         return f"{self.title} ({self.status.value})"
     
     def __repr__(self) -> str:
-        """Строковое представление для разработчиков"""
+        """String representation for developers"""
         return f"{self.__class__.__name__}(id={self.id}, title='{self.title}', status='{self.status.value}')"
     
     def __eq__(self, other) -> bool:
-        """Сравнение задач по ID"""
+        """Task comparison by ID"""
         if not isinstance(other, BaseTask):
             return False
         return self.id == other.id
     
     def __hash__(self) -> int:
-        """Хэш для использования в множествах и словарях"""
+        """Hash for use in sets and dictionaries"""
         return hash(self.id)
 
 
-# Миксины для дополнительной функциональности
+# Mixins for additional functionality
 class TimestampMixin:
-    """Миксин для отслеживания времени изменений"""
+    """Mixin for tracking change timestamps"""
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -133,12 +133,12 @@ class TimestampMixin:
         return self._updated_at
     
     def _update_timestamp(self) -> None:
-        """Обновить временную метку"""
+        """Update timestamp"""
         self._updated_at = datetime.now()
 
 
 class AssigneeMixin:
-    """Миксин для назначения исполнителя"""
+    """Mixin for assigning executor"""
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -155,9 +155,9 @@ class AssigneeMixin:
             self._update_timestamp()
 
 
-# Конкретные классы задач с множественным наследованием
+# Concrete task classes with multiple inheritance
 class SimpleTask(BaseTask, TimestampMixin):
-    """Простая задача"""
+    """Simple task"""
     
     def __init__(self, title: str, description: str = "", priority: Priority = Priority.MEDIUM):
         super().__init__(title, description)
@@ -167,7 +167,7 @@ class SimpleTask(BaseTask, TimestampMixin):
         return self._priority
     
     def estimate_duration(self) -> timedelta:
-        # Простая задача - от 30 минут до 2 часов в зависимости от приоритета
+        # Simple task - 30 minutes to 2 hours depending on priority
         base_hours = {
             Priority.LOW: 0.5,
             Priority.MEDIUM: 1,
@@ -178,23 +178,23 @@ class SimpleTask(BaseTask, TimestampMixin):
 
 
 class WorkTask(BaseTask, TimestampMixin, AssigneeMixin):
-    """Рабочая задача с исполнителем"""
+    """Work task with assignee"""
     
     def __init__(self, title: str, description: str = "", assignee: Optional[str] = None):
         super().__init__(title, description)
         self.assignee = assignee
     
     def get_priority(self) -> Priority:
-        # Рабочие задачи по умолчанию имеют высокий приоритет
+        # Work tasks have high priority by default
         return Priority.HIGH
     
     def estimate_duration(self) -> timedelta:
-        # Рабочие задачи обычно занимают больше времени
+        # Work tasks usually take more time
         return timedelta(hours=4)
 
 
 class UrgentTask(BaseTask, TimestampMixin, AssigneeMixin):
-    """Срочная задача"""
+    """Urgent task"""
     
     def __init__(self, title: str, description: str = "", deadline: Optional[datetime] = None):
         super().__init__(title, description)
@@ -206,7 +206,7 @@ class UrgentTask(BaseTask, TimestampMixin, AssigneeMixin):
     
     @property
     def is_overdue(self) -> bool:
-        """Проверка просрочки"""
+        """Check if overdue"""
         return datetime.now() > self._deadline and self.status != TaskStatus.DONE
     
     def get_priority(self) -> Priority:
@@ -216,9 +216,9 @@ class UrgentTask(BaseTask, TimestampMixin, AssigneeMixin):
         return timedelta(hours=1)
 
 
-# Context Manager для работы с задачами
+# Context Manager for working with tasks
 class TaskManager:
-    """Менеджер задач с context manager функциональностью"""
+    """Task manager with context manager functionality"""
     
     def __init__(self, filename: str = "tasks.json"):
         self.filename = filename
@@ -226,51 +226,51 @@ class TaskManager:
         self._in_context = False
     
     def add_task(self, task: BaseTask) -> None:
-        """Добавить задачу"""
+        """Add task"""
         self.tasks.append(task)
     
     def get_task_by_id(self, task_id: int) -> Optional[BaseTask]:
-        """Найти задачу по ID"""
+        """Find task by ID"""
         return next((task for task in self.tasks if task.id == task_id), None)
     
     def get_tasks_by_status(self, status: TaskStatus) -> List[BaseTask]:
-        """Получить задачи по статусу"""
+        """Get tasks by status"""
         return [task for task in self.tasks if task.status == status]
     
     def get_overdue_tasks(self) -> List[UrgentTask]:
-        """Получить просроченные задачи"""
+        """Get overdue tasks"""
         return [task for task in self.tasks 
                 if isinstance(task, UrgentTask) and task.is_overdue]
     
-    # Context Manager методы
+    # Context Manager methods
     def __enter__(self):
-        """Вход в контекст - загружаем задачи из файла"""
-        print(f"📂 Загружаем задачи из {self.filename}")
+        """Context entry - load tasks from file"""
+        print(f"📂 Loading tasks from {self.filename}")
         self._in_context = True
         try:
             self._load_tasks()
         except FileNotFoundError:
-            print("📝 Файл не найден, создаем новый список задач")
+            print("📝 File not found, creating new task list")
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Выход из контекста - сохраняем задачи в файл"""
+        """Context exit - save tasks to file"""
         if exc_type is None:
-            print(f"💾 Сохраняем задачи в {self.filename}")
+            print(f"💾 Saving tasks to {self.filename}")
             self._save_tasks()
         else:
-            print(f"❌ Ошибка: {exc_val}, задачи не сохранены")
+            print(f"❌ Error: {exc_val}, tasks not saved")
         self._in_context = False
-        return False  # Не подавляем исключения
+        return False  # Don't suppress exceptions
     
     def _load_tasks(self) -> None:
-        """Загрузить задачи из файла (упрощенная версия)"""
-        # В реальном проекте здесь была бы десериализация
+        """Load tasks from file (simplified version)"""
+        # In a real project, this would be deserialization
         pass
     
     def _save_tasks(self) -> None:
-        """Сохранить задачи в файл (упрощенная версия)"""
-        # В реальном проекте здесь была бы сериализация
+        """Save tasks to file (simplified version)"""
+        # In a real project, this would be serialization
         task_data = []
         for task in self.tasks:
             task_data.append({
@@ -286,57 +286,57 @@ class TaskManager:
             json.dump(task_data, f, ensure_ascii=False, indent=2)
     
     def __len__(self) -> int:
-        """Количество задач"""
+        """Number of tasks"""
         return len(self.tasks)
     
     def __iter__(self):
-        """Итерация по задачам"""
+        """Iterate over tasks"""
         return iter(self.tasks)
 
 
-# Демонстрация всех возможностей
+# Demonstration of all features
 def demo():
-    """Демонстрация продвинутого ООП"""
-    print("🚀 Демонстрация продвинутого ООП в Python\n")
+    """Advanced OOP demonstration in Python"""
+    print("🚀 Advanced OOP in Python Demonstration\n")
     
-    # Создаем разные типы задач
-    simple = SimpleTask("Изучить Python", "Основы ООП", Priority.HIGH)
-    work = WorkTask("Написать отчет", "Квартальный отчет", "Иван Петров")
-    urgent = UrgentTask("Исправить баг", "Критический баг в продакшене")
+    # Create different types of tasks
+    simple = SimpleTask("Learn Python", "OOP basics", Priority.HIGH)
+    work = WorkTask("Write report", "Quarterly report", "Ivan Petrov")
+    urgent = UrgentTask("Fix bug", "Critical bug in production")
     
-    print("📋 Созданные задачи:")
-    print(f"1. {simple} - Приоритет: {simple.get_priority().name}")
-    print(f"2. {work} - Исполнитель: {work.assignee}")
-    print(f"3. {urgent} - Дедлайн: {urgent.deadline.strftime('%Y-%m-%d %H:%M')}")
+    print("📋 Created tasks:")
+    print(f"1. {simple} - Priority: {simple.get_priority().name}")
+    print(f"2. {work} - Assignee: {work.assignee}")
+    print(f"3. {urgent} - Deadline: {urgent.deadline.strftime('%Y-%m-%d %H:%M')}")
     print()
     
-    # Демонстрация Context Manager
-    print("🔄 Работа с Context Manager:")
+    # Context Manager demonstration
+    print("🔄 Working with Context Manager:")
     with TaskManager("demo_tasks.json") as manager:
         manager.add_task(simple)
         manager.add_task(work)
         manager.add_task(urgent)
         
-        print(f"Всего задач: {len(manager)}")
+        print(f"Total tasks: {len(manager)}")
         
-        # Работаем с задачами
+        # Work with tasks
         simple.start()
         work.start()
         work.complete()
         
-        print("\n📊 Статистика:")
+        print("\n📊 Statistics:")
         print(f"TODO: {len(manager.get_tasks_by_status(TaskStatus.TODO))}")
-        print(f"В работе: {len(manager.get_tasks_by_status(TaskStatus.IN_PROGRESS))}")
-        print(f"Выполнено: {len(manager.get_tasks_by_status(TaskStatus.DONE))}")
+        print(f"In progress: {len(manager.get_tasks_by_status(TaskStatus.IN_PROGRESS))}")
+        print(f"Completed: {len(manager.get_tasks_by_status(TaskStatus.DONE))}")
         
-        # Проверяем просроченные
+        # Check overdue
         overdue = manager.get_overdue_tasks()
         if overdue:
-            print(f"⚠️ Просроченных задач: {len(overdue)}")
+            print(f"⚠️ Overdue tasks: {len(overdue)}")
     
-    print("\n✅ Демонстрация завершена!")
+    print("\n✅ Demonstration completed!")
     
-    # Демонстрация magic methods
+    # Magic methods demonstration
     print("\n🎭 Magic Methods:")
     print(f"str(simple): {str(simple)}")
     print(f"repr(simple): {repr(simple)}")

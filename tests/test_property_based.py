@@ -1,5 +1,5 @@
 """
-Property-based тесты с Hypothesis
+Property-based tests with Hypothesis
 """
 
 import pytest
@@ -10,10 +10,10 @@ from bookstore.models import User, Book, Author, Genre
 from bookstore.schemas import BookCreate, UserCreate
 
 
-# Стратегии для генерации данных
+# Strategies for data generation
 @composite
 def valid_email(draw):
-    """Генерация валидных email адресов"""
+    """Generate valid email addresses"""
     username = draw(st.text(min_size=1, max_size=20, alphabet=st.characters(whitelist_categories=('Lu', 'Ll', 'Nd'))))
     domain = draw(st.text(min_size=1, max_size=15, alphabet=st.characters(whitelist_categories=('Lu', 'Ll'))))
     tld = draw(st.sampled_from(['com', 'org', 'net', 'edu', 'gov']))
@@ -22,7 +22,7 @@ def valid_email(draw):
 
 @composite
 def valid_username(draw):
-    """Генерация валидных имен пользователей"""
+    """Generate valid usernames"""
     return draw(st.text(
         min_size=3, 
         max_size=50, 
@@ -32,43 +32,43 @@ def valid_username(draw):
 
 @composite
 def valid_password(draw):
-    """Генерация валидных паролей"""
-    # Используем ASCII символы вместо st.printable
+    """Generate valid passwords"""
+    # Use ASCII characters instead of st.printable
     return draw(st.text(min_size=8, max_size=50, alphabet=st.characters(min_codepoint=32, max_codepoint=126)))
 
 
 @composite
 def valid_book_title(draw):
-    """Генерация валидных названий книг"""
+    """Generate valid book titles"""
     return draw(st.text(min_size=1, max_size=500, alphabet=st.characters(blacklist_categories=('Cc', 'Cs'))))
 
 
 @composite
 def valid_price(draw):
-    """Генерация валидных цен"""
+    """Generate valid prices"""
     return draw(st.floats(min_value=0.01, max_value=9999.99, allow_nan=False, allow_infinity=False))
 
 
 class TestPasswordProperties:
-    """Property-based тесты для паролей"""
+    """Property-based tests for passwords"""
     
     @given(password=valid_password())
-    @settings(max_examples=50, deadline=1000)  # Увеличиваем deadline для bcrypt
+    @settings(max_examples=50, deadline=1000)  # Increase deadline for bcrypt
     def test_password_hash_roundtrip(self, password):
-        """Свойство: хэш пароля должен верифицироваться обратно"""
-        assume(len(password.encode('utf-8')) <= 72)  # Ограничение bcrypt
+        """Property: password hash should verify back"""
+        assume(len(password.encode('utf-8')) <= 72)  # bcrypt limitation
         
         hashed = get_password_hash(password)
         
-        # Свойства хэша
-        assert hashed != password  # Хэш не равен оригинальному паролю
-        assert len(hashed) > 20     # Хэш имеет разумную длину
-        assert verify_password(password, hashed)  # Верификация работает
+        # Hash properties
+        assert hashed != password  # Hash is not equal to original password
+        assert len(hashed) > 20     # Hash has reasonable length
+        assert verify_password(password, hashed)  # Verification works
     
     @given(password=valid_password(), wrong_password=valid_password())
-    @settings(max_examples=30, deadline=1000)  # Увеличиваем deadline для bcrypt
+    @settings(max_examples=30, deadline=1000)  # Increase deadline for bcrypt
     def test_different_passwords_dont_verify(self, password, wrong_password):
-        """Свойство: разные пароли не должны верифицироваться"""
+        """Property: different passwords should not verify"""
         assume(password != wrong_password)
         assume(len(password.encode('utf-8')) <= 72)
         
@@ -76,23 +76,23 @@ class TestPasswordProperties:
         assert not verify_password(wrong_password, hashed)
     
     @given(password=valid_password())
-    @settings(max_examples=30, deadline=2000)  # Увеличиваем deadline для двойного хэширования
+    @settings(max_examples=30, deadline=2000)  # Increase deadline for double hashing
     def test_same_password_different_hashes(self, password):
-        """Свойство: один пароль должен давать разные хэши (соль)"""
+        """Property: same password should give different hashes (salt)"""
         assume(len(password.encode('utf-8')) <= 72)
         
         hash1 = get_password_hash(password)
         hash2 = get_password_hash(password)
         
-        # Хэши должны быть разными (из-за соли)
+        # Hashes should be different (due to salt)
         assert hash1 != hash2
-        # Но оба должны верифицироваться
+        # But both should verify
         assert verify_password(password, hash1)
         assert verify_password(password, hash2)
 
 
 class TestUserModelProperties:
-    """Property-based тесты для модели пользователя"""
+    """Property-based tests for user model"""
     
     @given(
         email=valid_email(),
@@ -102,10 +102,10 @@ class TestUserModelProperties:
     )
     @settings(max_examples=30, suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=2000)
     def test_user_creation_properties(self, db_session, email, username, full_name, password):
-        """Свойство: пользователь должен создаваться с валидными данными"""
+        """Property: user should be created with valid data"""
         assume(len(password.encode('utf-8')) <= 72)
         
-        # Добавляем уникальный префикс для избежания коллизий
+        # Add unique prefix to avoid collisions
         import uuid
         unique_suffix = str(uuid.uuid4())[:8]
         unique_email = f"{unique_suffix}_{email}"
@@ -123,19 +123,19 @@ class TestUserModelProperties:
         db_session.commit()
         db_session.refresh(user)
         
-        # Свойства созданного пользователя
+        # Properties of created user
         assert user.id is not None
         assert user.email == unique_email
         assert user.username == unique_username
         assert user.full_name == full_name
         assert user.is_active is True
-        assert user.is_superuser is False  # По умолчанию
+        assert user.is_superuser is False  # Default value
         assert user.created_at is not None
         assert verify_password(password, user.hashed_password)
 
 
 class TestBookModelProperties:
-    """Property-based тесты для модели книги"""
+    """Property-based tests for book model"""
     
     @given(
         title=valid_book_title(),
@@ -147,7 +147,7 @@ class TestBookModelProperties:
     @settings(max_examples=30, suppress_health_check=[HealthCheck.function_scoped_fixture])
     def test_book_creation_properties(self, db_session, test_author, test_genre, 
                                     title, description, price, page_count, language):
-        """Свойство: книга должна создаваться с валидными данными"""
+        """Property: book should be created with valid data"""
         
         book = Book(
             title=title,
@@ -164,7 +164,7 @@ class TestBookModelProperties:
         db_session.commit()
         db_session.refresh(book)
         
-        # Свойства созданной книги
+        # Properties of created book
         assert book.id is not None
         assert book.title == title
         assert book.description == description
@@ -185,7 +185,7 @@ class TestBookModelProperties:
     @settings(max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture])
     def test_book_ordering_properties(self, db_session, test_author, test_genre,
                                     title1, title2, price1, price2):
-        """Свойство: книги должны правильно сортироваться"""
+        """Property: books should sort correctly"""
         assume(title1 != title2)
         
         book1 = Book(title=title1, price=price1, is_available=True)
@@ -199,18 +199,18 @@ class TestBookModelProperties:
         db_session.add_all([book1, book2])
         db_session.commit()
         
-        # Сортировка по цене
+        # Sort by price
         books_by_price = db_session.query(Book).order_by(Book.price).all()
         if price1 < price2:
             assert books_by_price[0].price <= books_by_price[1].price
         
-        # Сортировка по названию
+        # Sort by title
         books_by_title = db_session.query(Book).order_by(Book.title).all()
         assert books_by_title[0].title <= books_by_title[1].title
 
 
 class TestAPISchemaProperties:
-    """Property-based тесты для API схем"""
+    """Property-based tests for API schemas"""
     
     @given(
         title=valid_book_title(),
@@ -221,7 +221,7 @@ class TestAPISchemaProperties:
     )
     @settings(max_examples=20)
     def test_book_create_schema_properties(self, title, price, page_count, author_ids, genre_ids):
-        """Свойство: схема создания книги должна валидировать корректные данные"""
+        """Property: book creation schema should validate correct data"""
         
         book_data = BookCreate(
             title=title,
@@ -232,7 +232,7 @@ class TestAPISchemaProperties:
             is_available=True
         )
         
-        # Свойства валидной схемы
+        # Properties of valid schema
         assert book_data.title == title
         assert book_data.price == price
         assert book_data.page_count == page_count
@@ -247,7 +247,7 @@ class TestAPISchemaProperties:
     )
     @settings(max_examples=20)
     def test_user_create_schema_properties(self, email, username, password):
-        """Свойство: схема создания пользователя должна валидировать корректные данные"""
+        """Property: user creation schema should validate correct data"""
         
         user_data = UserCreate(
             email=email,
@@ -256,8 +256,8 @@ class TestAPISchemaProperties:
             is_active=True
         )
         
-        # Свойства валидной схемы
-        # Email нормализуется к нижнему регистру в Pydantic
+        # Properties of valid schema
+        # Email is normalized to lowercase in Pydantic
         assert user_data.email == email.lower()
         assert user_data.username == username
         assert user_data.password == password
@@ -265,16 +265,16 @@ class TestAPISchemaProperties:
 
 
 class TestSearchProperties:
-    """Property-based тесты для поиска"""
+    """Property-based tests for search"""
     
     @given(
         search_term=st.text(min_size=1, max_size=50, alphabet=st.characters(whitelist_categories=('Lu', 'Ll', 'Nd', 'Zs')))
     )
     @settings(max_examples=20, suppress_health_check=[HealthCheck.function_scoped_fixture])
     def test_search_invariants(self, db_session, test_author, test_genre, search_term):
-        """Свойство: поиск должен соблюдать инварианты"""
+        """Property: search should maintain invariants"""
         
-        # Создаем книги с разными названиями
+        # Create books with different titles
         book1 = Book(title=f"Book with {search_term}", is_available=True)
         book1.authors = [test_author]
         book1.genres = [test_genre]
@@ -286,21 +286,21 @@ class TestSearchProperties:
         db_session.add_all([book1, book2])
         db_session.commit()
         
-        # Поиск по термину
+        # Search by term
         search_results = db_session.query(Book).filter(
             Book.title.ilike(f"%{search_term}%")
         ).all()
         
-        # Инварианты поиска
-        assert len(search_results) <= 2  # Не больше всех книг
+        # Search invariants
+        assert len(search_results) <= 2  # No more than all books
         
-        # Все найденные книги должны содержать поисковый термин
+        # All found books should contain search term
         for book in search_results:
             assert search_term.lower() in book.title.lower()
 
 
 class TestPaginationProperties:
-    """Property-based тесты для пагинации"""
+    """Property-based tests for pagination"""
     
     @given(
         page_size=st.integers(min_value=1, max_value=50),
@@ -308,12 +308,12 @@ class TestPaginationProperties:
     )
     @settings(max_examples=20)
     def test_pagination_invariants(self, page_size, total_items):
-        """Свойство: пагинация должна соблюдать математические инварианты"""
+        """Property: pagination should maintain mathematical invariants"""
         
-        # Вычисляем количество страниц
+        # Calculate number of pages
         total_pages = (total_items + page_size - 1) // page_size if total_items > 0 else 0
         
-        # Инварианты пагинации
+        # Pagination invariants
         assert total_pages >= 0
         
         if total_items == 0:
@@ -322,7 +322,7 @@ class TestPaginationProperties:
             assert total_pages >= 1
             assert (total_pages - 1) * page_size < total_items <= total_pages * page_size
         
-        # Проверяем размеры страниц
+        # Check page sizes
         for page_num in range(1, total_pages + 1):
             offset = (page_num - 1) * page_size
             remaining_items = max(0, total_items - offset)
@@ -331,5 +331,5 @@ class TestPaginationProperties:
             assert 0 <= page_items <= page_size
             if page_num < total_pages:
                 assert page_items == page_size
-            else:  # Последняя страница
+            else:  # Last page
                 assert page_items <= page_size

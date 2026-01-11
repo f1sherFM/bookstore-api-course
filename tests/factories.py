@@ -1,5 +1,5 @@
 """
-Фабрики для создания тестовых данных
+Factories for creating test data
 """
 
 import factory
@@ -15,7 +15,7 @@ fake = Faker(['ru_RU', 'en_US'])
 
 
 class UserFactory(SQLAlchemyModelFactory):
-    """Фабрика для создания пользователей"""
+    """Factory for creating users"""
     
     class Meta:
         model = User
@@ -30,14 +30,14 @@ class UserFactory(SQLAlchemyModelFactory):
 
 
 class SuperUserFactory(UserFactory):
-    """Фабрика для создания суперпользователей"""
+    """Factory for creating superusers"""
     is_superuser = True
     username = factory.Sequence(lambda n: f"admin{n}")
     email = factory.Sequence(lambda n: f"admin{n}@example.com")
 
 
 class AuthorFactory(SQLAlchemyModelFactory):
-    """Фабрика для создания авторов"""
+    """Factory for creating authors"""
     
     class Meta:
         model = Author
@@ -56,7 +56,7 @@ class AuthorFactory(SQLAlchemyModelFactory):
 
 
 class GenreFactory(SQLAlchemyModelFactory):
-    """Фабрика для создания жанров"""
+    """Factory for creating genres"""
     
     class Meta:
         model = Genre
@@ -67,7 +67,7 @@ class GenreFactory(SQLAlchemyModelFactory):
 
 
 class BookFactory(SQLAlchemyModelFactory):
-    """Фабрика для создания книг"""
+    """Factory for creating books"""
     
     class Meta:
         model = Book
@@ -85,7 +85,7 @@ class BookFactory(SQLAlchemyModelFactory):
     cover_image_url = factory.LazyAttribute(lambda obj: fake.image_url())
     is_available = factory.LazyAttribute(lambda obj: fake.boolean(chance_of_getting_true=90))
     
-    # Связи many-to-many
+    # Many-to-many relationships
     @factory.post_generation
     def authors(self, create, extracted, **kwargs):
         if not create:
@@ -95,7 +95,7 @@ class BookFactory(SQLAlchemyModelFactory):
             for author in extracted:
                 self.authors.append(author)
         else:
-            # Создаем 1-3 авторов по умолчанию
+            # Create 1-3 authors by default
             author_count = fake.random_int(min=1, max=3)
             for _ in range(author_count):
                 author = AuthorFactory()
@@ -110,7 +110,7 @@ class BookFactory(SQLAlchemyModelFactory):
             for genre in extracted:
                 self.genres.append(genre)
         else:
-            # Создаем 1-2 жанра по умолчанию
+            # Create 1-2 genres by default
             genre_count = fake.random_int(min=1, max=2)
             for _ in range(genre_count):
                 genre = GenreFactory()
@@ -118,7 +118,7 @@ class BookFactory(SQLAlchemyModelFactory):
 
 
 class ReviewFactory(SQLAlchemyModelFactory):
-    """Фабрика для создания отзывов"""
+    """Factory for creating reviews"""
     
     class Meta:
         model = Review
@@ -132,7 +132,7 @@ class ReviewFactory(SQLAlchemyModelFactory):
 
 
 class ReadingListFactory(SQLAlchemyModelFactory):
-    """Фабрика для создания списков чтения"""
+    """Factory for creating reading lists"""
     
     class Meta:
         model = ReadingList
@@ -144,17 +144,17 @@ class ReadingListFactory(SQLAlchemyModelFactory):
     is_public = factory.LazyAttribute(lambda obj: fake.boolean(chance_of_getting_true=30))
 
 
-# Специальные фабрики для тестовых сценариев
+# Special factories for test scenarios
 
 class PopularBookFactory(BookFactory):
-    """Фабрика для популярных книг"""
+    """Factory for popular books"""
     price = factory.LazyAttribute(lambda obj: round(fake.pyfloat(min_value=299.99, max_value=799.99, right_digits=2), 2))
     page_count = factory.LazyAttribute(lambda obj: fake.random_int(min=300, max=800))
     is_available = True
 
 
 class ClassicBookFactory(BookFactory):
-    """Фабрика для классических книг"""
+    """Factory for classic books"""
     publication_date = factory.LazyAttribute(
         lambda obj: fake.date_between(start_date='-200y', end_date='-50y')
     )
@@ -163,7 +163,7 @@ class ClassicBookFactory(BookFactory):
 
 
 class NewBookFactory(BookFactory):
-    """Фабрика для новых книг"""
+    """Factory for new books"""
     publication_date = factory.LazyAttribute(
         lambda obj: fake.date_between(start_date='-2y', end_date='today')
     )
@@ -171,20 +171,20 @@ class NewBookFactory(BookFactory):
 
 
 class ExpensiveBookFactory(BookFactory):
-    """Фабрика для дорогих книг"""
+    """Factory for expensive books"""
     price = factory.LazyAttribute(lambda obj: round(fake.pyfloat(min_value=500.0, max_value=2000.0, right_digits=2), 2))
 
 
 class FreeBookFactory(BookFactory):
-    """Фабрика для бесплатных книг"""
+    """Factory for free books"""
     price = 0.0
 
 
-# Batch фабрики для создания множества объектов
+# Batch factories for creating multiple objects
 
 def create_test_library(db_session, num_books=50):
-    """Создание тестовой библиотеки"""
-    # Настраиваем все фабрики для работы с переданной сессией
+    """Create test library"""
+    # Configure all factories to work with passed session
     UserFactory._meta.sqlalchemy_session = db_session
     SuperUserFactory._meta.sqlalchemy_session = db_session
     AuthorFactory._meta.sqlalchemy_session = db_session
@@ -193,15 +193,15 @@ def create_test_library(db_session, num_books=50):
     ReviewFactory._meta.sqlalchemy_session = db_session
     ReadingListFactory._meta.sqlalchemy_session = db_session
     
-    # Создаем пользователей
+    # Create users
     users = UserFactory.create_batch(10)
     admin = SuperUserFactory()
     
-    # Создаем авторов и жанры
+    # Create authors and genres
     authors = AuthorFactory.create_batch(20)
     genres = GenreFactory.create_batch(10)
     
-    # Создаем книги
+    # Create books
     books = []
     for _ in range(num_books):
         book_authors = fake.random_elements(authors, length=fake.random_int(1, 3), unique=True)
@@ -210,12 +210,12 @@ def create_test_library(db_session, num_books=50):
         book = BookFactory(authors=book_authors, genres=book_genres)
         books.append(book)
     
-    # Создаем отзывы
-    for _ in range(min(num_books * 2, 100)):  # Ограничиваем количество отзывов
+    # Create reviews
+    for _ in range(min(num_books * 2, 100)):  # Limit number of reviews
         user = fake.random_element(users)
         book = fake.random_element(books)
         
-        # Проверяем, что пользователь еще не оставлял отзыв на эту книгу
+        # Check that user hasn't already left a review for this book
         existing_review = db_session.query(Review).filter(
             Review.user_id == user.id,
             Review.book_id == book.id
@@ -224,12 +224,12 @@ def create_test_library(db_session, num_books=50):
         if not existing_review:
             ReviewFactory(user=user, book=book)
     
-    # Создаем списки чтения (упрощенно)
-    for user in users[:5]:  # Только для первых 5 пользователей
-        if fake.boolean(chance_of_getting_true=70):  # 70% пользователей имеют списки
+    # Create reading lists (simplified)
+    for user in users[:5]:  # Only for first 5 users
+        if fake.boolean(chance_of_getting_true=70):  # 70% of users have lists
             reading_list = ReadingListFactory(user=user)
             
-            # Добавляем книги в список
+            # Add books to list
             list_books = fake.random_elements(books, length=fake.random_int(3, 10), unique=True)
             for book in list_books:
                 from bookstore.models import ReadingListItem

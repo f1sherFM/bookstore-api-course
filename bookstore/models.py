@@ -1,5 +1,5 @@
 """
-SQLAlchemy модели для системы управления книгами
+SQLAlchemy models for book management system
 """
 
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean, Table
@@ -10,7 +10,7 @@ from datetime import datetime
 
 Base = declarative_base()
 
-# Таблица связи многие-ко-многим для книг и авторов
+# Many-to-many relationship table for books and authors
 book_authors = Table(
     'book_authors',
     Base.metadata,
@@ -18,7 +18,7 @@ book_authors = Table(
     Column('author_id', Integer, ForeignKey('authors.id'), primary_key=True)
 )
 
-# Таблица связи многие-ко-многим для книг и жанров
+# Many-to-many relationship table for books and genres
 book_genres = Table(
     'book_genres',
     Base.metadata,
@@ -28,7 +28,7 @@ book_genres = Table(
 
 
 class User(Base):
-    """Модель пользователя"""
+    """User model"""
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -41,13 +41,13 @@ class User(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
     
-    # Связи
+    # Relationships
     reviews = relationship("Review", back_populates="user", cascade="all, delete-orphan")
     reading_lists = relationship("ReadingList", back_populates="user", cascade="all, delete-orphan")
 
 
 class Author(Base):
-    """Модель автора"""
+    """Author model"""
     __tablename__ = "authors"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -59,12 +59,12 @@ class Author(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
     
-    # Связи
+    # Relationships
     books = relationship("Book", secondary=book_authors, back_populates="authors")
 
 
 class Genre(Base):
-    """Модель жанра"""
+    """Genre model"""
     __tablename__ = "genres"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -72,12 +72,12 @@ class Genre(Base):
     description = Column(Text, nullable=True)
     created_at = Column(DateTime, default=func.now())
     
-    # Связи
+    # Relationships
     books = relationship("Book", secondary=book_genres, back_populates="genres")
 
 
 class Book(Base):
-    """Модель книги"""
+    """Book model"""
     __tablename__ = "books"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -93,7 +93,7 @@ class Book(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
     
-    # Связи
+    # Relationships
     authors = relationship("Author", secondary=book_authors, back_populates="books")
     genres = relationship("Genre", secondary=book_genres, back_populates="books")
     reviews = relationship("Review", back_populates="book", cascade="all, delete-orphan")
@@ -101,25 +101,25 @@ class Book(Base):
 
 
 class Review(Base):
-    """Модель отзыва на книгу"""
+    """Book review model"""
     __tablename__ = "reviews"
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     book_id = Column(Integer, ForeignKey("books.id"), nullable=False)
-    rating = Column(Integer, nullable=False)  # 1-5 звезд
+    rating = Column(Integer, nullable=False)  # 1-5 stars
     title = Column(String(255), nullable=True)
     content = Column(Text, nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
     
-    # Связи
+    # Relationships
     user = relationship("User", back_populates="reviews")
     book = relationship("Book", back_populates="reviews")
 
 
 class ReadingList(Base):
-    """Модель списка для чтения"""
+    """Reading list model"""
     __tablename__ = "reading_lists"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -130,13 +130,13 @@ class ReadingList(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
     
-    # Связи
+    # Relationships
     user = relationship("User", back_populates="reading_lists")
     items = relationship("ReadingListItem", back_populates="reading_list", cascade="all, delete-orphan")
 
 
 class ReadingListItem(Base):
-    """Элемент списка для чтения"""
+    """Reading list item"""
     __tablename__ = "reading_list_items"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -145,6 +145,6 @@ class ReadingListItem(Base):
     added_at = Column(DateTime, default=func.now())
     notes = Column(Text, nullable=True)
     
-    # Связи
+    # Relationships
     reading_list = relationship("ReadingList", back_populates="items")
     book = relationship("Book", back_populates="reading_list_items")

@@ -1,8 +1,8 @@
-# 🐍 Продвинутое ООП в Python - Шпаргалка
+# 🐍 Advanced OOP in Python - Cheat Sheet
 
-## 🎯 Что мы изучили (9:00-10:30)
+## 🎯 What we learned (9:00-10:30)
 
-### 1. Абстрактные классы (ABC)
+### 1. Abstract classes (ABC)
 ```python
 from abc import ABC, abstractmethod
 
@@ -11,9 +11,9 @@ class BaseTask(ABC):
     def get_priority(self):
         pass
 ```
-**Зачем:** Определяет интерфейс, который должны реализовать наследники
+**Why:** Defines interface that inheritors must implement
 
-### 2. Property декораторы
+### 2. Property decorators
 ```python
 @property
 def title(self):
@@ -22,55 +22,55 @@ def title(self):
 @title.setter  
 def title(self, value):
     if not value:
-        raise ValueError("Пустой заголовок")
+        raise ValueError("Empty title")
     self._title = value
 ```
-**Зачем:** Контролируемый доступ к атрибутам с валидацией
+**Why:** Controlled access to attributes with validation
 
 ### 3. Magic Methods
 ```python
-def __str__(self):      # Для пользователей
+def __str__(self):      # For users
     return f"{self.title} ({self.status})"
 
-def __repr__(self):     # Для разработчиков  
+def __repr__(self):     # For developers  
     return f"Task(id={self.id})"
 
-def __eq__(self, other): # Сравнение
+def __eq__(self, other): # Comparison
     return self.id == other.id
 
-def __hash__(self):     # Для set/dict
+def __hash__(self):     # For set/dict
     return hash(self.id)
 ```
 
-### 4. Множественное наследование + Миксины
+### 4. Multiple inheritance + Mixins
 ```python
 class TimestampMixin:
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)  # Важно!
+        super().__init__(*args, **kwargs)  # Important!
         self._updated_at = datetime.now()
 
 class WorkTask(BaseTask, TimestampMixin, AssigneeMixin):
-    pass  # Получает функциональность от всех родителей
+    pass  # Gets functionality from all parents
 ```
-**Правило:** Всегда используй `super()` в миксинах!
+**Rule:** Always use `super()` in mixins!
 
 ### 5. Context Managers
 ```python
 class TaskManager:
     def __enter__(self):
-        # Подготовка ресурсов
+        # Resource preparation
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Очистка ресурсов
+        # Resource cleanup
         if exc_type is None:
-            self.save()  # Успех
+            self.save()  # Success
         else:
-            print(f"Ошибка: {exc_val}")  # Ошибка
-        return False  # Не подавляем исключения
+            print(f"Error: {exc_val}")  # Error
+        return False  # Don't suppress exceptions
 ```
 
-## 🔥 Ключевые принципы
+## 🔥 Key Principles
 
 ### MRO (Method Resolution Order)
 ```python
@@ -79,59 +79,59 @@ class B(A): pass
 class C(A): pass
 class D(B, C): pass
 
-print(D.__mro__)  # Порядок поиска методов
+print(D.__mro__)  # Method search order
 ```
 
-### Композиция vs Наследование
-- **Наследование:** "является" (Task IS-A BaseTask)
-- **Композиция:** "содержит" (TaskManager HAS-A List[Task])
+### Composition vs Inheritance
+- **Inheritance:** "is-a" (Task IS-A BaseTask)
+- **Composition:** "has-a" (TaskManager HAS-A List[Task])
 
-### SOLID принципы
-- **S**ingle Responsibility - один класс = одна ответственность
-- **O**pen/Closed - открыт для расширения, закрыт для изменения
-- **L**iskov Substitution - наследники заменяют родителей
-- **I**nterface Segregation - много маленьких интерфейсов
-- **D**ependency Inversion - зависимость от абстракций
+### SOLID principles
+- **S**ingle Responsibility - one class = one responsibility
+- **O**pen/Closed - open for extension, closed for modification
+- **L**iskov Substitution - inheritors replace parents
+- **I**nterface Segregation - many small interfaces
+- **D**ependency Inversion - depend on abstractions
 
-## ⚡ Практические советы
+## ⚡ Practical Tips
 
-### 1. Когда использовать ABC
+### 1. When to use ABC
 ```python
-# ✅ Хорошо - определяет контракт
+# ✅ Good - defines contract
 class PaymentProcessor(ABC):
     @abstractmethod
     def process_payment(self, amount): pass
 
-# ❌ Плохо - нет общего интерфейса
+# ❌ Bad - no common interface
 class Animal(ABC): pass
 ```
 
-### 2. Property vs обычные атрибуты
+### 2. Property vs regular attributes
 ```python
-# ✅ Используй property для:
+# ✅ Use property for:
 @property
 def age(self):
     return (datetime.now() - self.birth_date).days // 365
 
-# ❌ Не нужно для простых атрибутов
+# ❌ Not needed for simple attributes
 @property  
 def name(self):
-    return self._name  # Просто используй self.name
+    return self._name  # Just use self.name
 ```
 
-### 3. Миксины должны быть маленькими
+### 3. Mixins should be small
 ```python
-# ✅ Хорошо - одна функция
+# ✅ Good - single function
 class TimestampMixin:
     def update_timestamp(self): pass
 
-# ❌ Плохо - слишком много функций
+# ❌ Bad - too many functions
 class EverythingMixin:
     def timestamp(self): pass
     def validate(self): pass  
     def serialize(self): pass
 ```
 
-## 🎯 Следующий шаг: Декораторы + Type Hints (10:30-12:00)
+## 🎯 Next step: Decorators + Type Hints (10:30-12:00)
 
-Готов продолжить? Переходим к созданию собственных декораторов! 🚀
+Ready to continue? Moving on to creating custom decorators! 🚀

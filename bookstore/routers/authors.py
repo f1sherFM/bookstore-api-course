@@ -1,5 +1,5 @@
 """
-Роутер для работы с авторами
+Router for working with authors
 """
 
 from typing import List
@@ -16,14 +16,14 @@ router = APIRouter()
 
 @router.get("/", response_model=List[AuthorSchema])
 async def get_authors(db: Session = Depends(get_db)):
-    """Получение списка авторов"""
+    """Get list of authors"""
     authors = db.query(Author).all()
     return authors
 
 
 @router.get("/{author_id}", response_model=AuthorSchema)
 async def get_author(author_id: int, db: Session = Depends(get_db)):
-    """Получение автора по ID"""
+    """Get author by ID"""
     author = db.query(Author).filter(Author.id == author_id).first()
     if not author:
         raise HTTPException(
@@ -39,7 +39,7 @@ async def create_author(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """Создание автора"""
+    """Create author"""
     author = Author(**author_data.model_dump())
     db.add(author)
     db.commit()
@@ -54,7 +54,7 @@ async def update_author(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """Обновление автора"""
+    """Update author"""
     author = db.query(Author).filter(Author.id == author_id).first()
     if not author:
         raise HTTPException(
@@ -77,7 +77,7 @@ async def delete_author(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """Удаление автора"""
+    """Delete author"""
     author = db.query(Author).filter(Author.id == author_id).first()
     if not author:
         raise HTTPException(

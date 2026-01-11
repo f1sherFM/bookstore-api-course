@@ -1,135 +1,135 @@
-# 🐳 Docker Setup для BookStore API
+# 🐳 Docker Setup for BookStore API
 
-## Обзор
+## Overview
 
-Полная контейнеризация BookStore API с использованием Docker и docker-compose для локальной разработки и production deployment.
+Complete containerization of BookStore API using Docker and docker-compose for local development and production deployment.
 
-## Структура файлов
+## File Structure
 
 ```
 ├── Dockerfile              # Multi-stage Docker build
-├── docker-compose.yml      # Локальная разработка
-├── nginx.conf              # Reverse proxy конфигурация
-├── init.sql                # Инициализация PostgreSQL
-├── .dockerignore           # Исключения для Docker build
-├── .env.example            # Пример переменных окружения
-└── docker-build.sh         # Скрипт сборки (Linux/Mac)
+├── docker-compose.yml      # Local development
+├── config/nginx.conf       # Reverse proxy configuration
+├── database/init.sql       # PostgreSQL initialization
+├── .dockerignore           # Docker build exclusions
+├── .env.example            # Environment variables example
+└── docker-build.sh         # Build script (Linux/Mac)
 ```
 
-## Быстрый старт
+## Quick Start
 
-### 1. Подготовка окружения
+### 1. Environment Setup
 
 ```bash
-# Скопировать пример конфигурации
+# Copy example configuration
 cp .env.example .env
 
-# Отредактировать переменные окружения
+# Edit environment variables
 nano .env
 ```
 
-### 2. Сборка и запуск
+### 2. Build and Run
 
 ```bash
-# Сборка образа
+# Build image
 docker build -t bookstore-api:latest .
 
-# Запуск всех сервисов
+# Start all services
 docker-compose up -d
 
-# Проверка статуса
+# Check status
 docker-compose ps
 ```
 
-### 3. Проверка работоспособности
+### 3. Health Check
 
 ```bash
 # Health check
 curl http://localhost:8000/health
 
-# API документация
+# API documentation
 open http://localhost:8000/docs
 
-# Через Nginx (порт 80)
+# Through Nginx (port 80)
 curl http://localhost/health
 ```
 
-## Архитектура контейнеров
+## Container Architecture
 
 ### API Container (bookstore-api)
 - **Base Image**: python:3.11-slim
-- **Multi-stage build** для оптимизации размера
-- **Non-root user** для безопасности
-- **Health check** встроен в контейнер
+- **Multi-stage build** for size optimization
+- **Non-root user** for security
+- **Health check** built into container
 - **Port**: 8000
 
 ### Database Container (PostgreSQL)
 - **Image**: postgres:15-alpine
-- **Persistent storage** через Docker volumes
-- **Health check** с pg_isready
+- **Persistent storage** via Docker volumes
+- **Health check** with pg_isready
 - **Port**: 5432
 
 ### Cache Container (Redis)
 - **Image**: redis:7-alpine
-- **Persistent storage** с AOF
-- **Health check** с redis-cli ping
+- **Persistent storage** with AOF
+- **Health check** with redis-cli ping
 - **Port**: 6379
 
 ### Reverse Proxy (Nginx)
 - **Image**: nginx:alpine
-- **Rate limiting** настроен
-- **Security headers** добавлены
-- **Gzip compression** включен
+- **Rate limiting** configured
+- **Security headers** added
+- **Gzip compression** enabled
 - **Ports**: 80, 443
 
-## Особенности Docker образа
+## Docker Image Features
 
 ### Multi-stage Build
 ```dockerfile
-# Stage 1: Builder - устанавливает зависимости
+# Stage 1: Builder - installs dependencies
 FROM python:3.11-slim as builder
-# ... установка зависимостей в venv
+# ... install dependencies in venv
 
-# Stage 2: Production - только runtime
+# Stage 2: Production - runtime only
 FROM python:3.11-slim as production
-# ... копирование venv и приложения
+# ... copy venv and application
 ```
 
-### Безопасность
-- ✅ Non-root пользователь
-- ✅ Минимальный base image
-- ✅ Только необходимые зависимости
-- ✅ Health check для мониторинга
+### Security
+- ✅ Non-root user
+- ✅ Minimal base image
+- ✅ Only necessary dependencies
+- ✅ Health check for monitoring
 
-### Оптимизация
-- ✅ .dockerignore для исключения ненужных файлов
-- ✅ Кэширование слоев Docker
-- ✅ Виртуальное окружение Python
-- ✅ Сжатие в Nginx
+### Optimization
+- ✅ .dockerignore for excluding unnecessary files
+- ✅ Docker layer caching
+- ✅ Python virtual environment
+- ✅ Compression in Nginx
 
-## Команды управления
+## Management Commands
 
-### Разработка
+### Development
 ```bash
-# Запуск в development режиме
+# Start in development mode
 docker-compose up
 
-# Пересборка после изменений
+# Rebuild after changes
 docker-compose up --build
 
-# Просмотр логов
+# View logs
 docker-compose logs -f api
 
-# Подключение к контейнеру
+# Connect to container
 docker-compose exec api bash
 ```
 
 ### Production
 ```bash
-# Сборка production образа
+# Build production image
 docker build --target production -t bookstore-api:prod .
 
-# Запуск с production конфигурацией
+# Run with production configuration
 docker run -d \
   --name bookstore-api \
   -p 8000:8000 \
@@ -137,36 +137,36 @@ docker run -d \
   bookstore-api:prod
 ```
 
-### Мониторинг
+### Monitoring
 ```bash
-# Статус контейнеров
+# Container status
 docker-compose ps
 
-# Использование ресурсов
+# Resource usage
 docker stats
 
 # Health check
 docker-compose exec api curl http://localhost:8000/health
 ```
 
-## Переменные окружения
+## Environment Variables
 
-### Обязательные
-- `DATABASE_URL` - URL подключения к PostgreSQL
-- `SECRET_KEY` - Секретный ключ приложения
-- `JWT_SECRET_KEY` - Ключ для JWT токенов
+### Required
+- `DATABASE_URL` - PostgreSQL connection URL
+- `SECRET_KEY` - Application secret key
+- `JWT_SECRET_KEY` - JWT token key
 
-### Опциональные
-- `REDIS_URL` - URL подключения к Redis (по умолчанию: redis://localhost:6379)
-- `LOG_LEVEL` - Уровень логирования (по умолчанию: INFO)
-- `ENVIRONMENT` - Окружение (development/staging/production)
+### Optional
+- `REDIS_URL` - Redis connection URL (default: redis://localhost:6379)
+- `LOG_LEVEL` - Logging level (default: INFO)
+- `ENVIRONMENT` - Environment (development/staging/production)
 
-## Volumes и данные
+## Volumes and Data
 
 ### Persistent Storage
-- `postgres_data` - Данные PostgreSQL
-- `redis_data` - Данные Redis
-- `./logs` - Логи приложения
+- `postgres_data` - PostgreSQL data
+- `redis_data` - Redis data
+- `./logs` - Application logs
 
 ### Backup
 ```bash
@@ -179,27 +179,27 @@ docker-compose exec -T db psql -U bookstore bookstore_db < backup.sql
 
 ## Troubleshooting
 
-### Проблемы с запуском
+### Startup Issues
 ```bash
-# Проверить логи
+# Check logs
 docker-compose logs api
 
-# Проверить health check
+# Check health check
 docker-compose exec api curl http://localhost:8000/health
 
-# Перезапустить сервисы
+# Restart services
 docker-compose restart
 ```
 
-### Проблемы с базой данных
+### Database Issues
 ```bash
-# Проверить подключение к БД
+# Check database connection
 docker-compose exec api python -c "
 from bookstore.database import engine
 print(engine.execute('SELECT 1').scalar())
 "
 
-# Пересоздать БД
+# Recreate database
 docker-compose down -v
 docker-compose up -d
 ```
@@ -208,10 +208,10 @@ docker-compose up -d
 
 ### Docker Registry
 ```bash
-# Tag для registry
+# Tag for registry
 docker tag bookstore-api:latest your-registry.com/bookstore-api:v1.0.0
 
-# Push в registry
+# Push to registry
 docker push your-registry.com/bookstore-api:v1.0.0
 ```
 
@@ -244,7 +244,7 @@ spec:
               key: database-url
 ```
 
-## Метрики и мониторинг
+## Metrics and Monitoring
 
 ### Health Check Response
 ```json
@@ -263,14 +263,14 @@ spec:
 ```
 
 ### Prometheus Metrics
-- Доступны через `/metrics` endpoint
-- Включают метрики приложения и системы
-- Интеграция с Grafana для визуализации
+- Available through `/metrics` endpoint
+- Include application and system metrics
+- Grafana integration for visualization
 
-## Следующие шаги
+## Next Steps
 
-1. ✅ **Docker контейнеризация** - завершено
-2. 🔄 **Environment Configuration** - в процессе
-3. ⏳ **CI/CD Pipeline** - следующий этап
-4. ⏳ **Monitoring & Logging** - планируется
-5. ⏳ **Cloud Deployment** - финальный этап
+1. ✅ **Docker containerization** - completed
+2. 🔄 **Environment Configuration** - in progress
+3. ⏳ **CI/CD Pipeline** - next stage
+4. ⏳ **Monitoring & Logging** - planned
+5. ⏳ **Cloud Deployment** - final stage

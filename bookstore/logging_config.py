@@ -1,5 +1,5 @@
 """
-Система структурированного логирования для BookStore API
+Structured logging system for BookStore API
 """
 
 import logging
@@ -13,18 +13,18 @@ from functools import wraps
 
 from .config import settings
 
-# Context variables для отслеживания request ID
+# Context variables for tracking request ID
 request_id_var: ContextVar[Optional[str]] = ContextVar('request_id', default=None)
 user_id_var: ContextVar[Optional[str]] = ContextVar('user_id', default=None)
 
 
 class JSONFormatter(logging.Formatter):
-    """Форматтер для структурированных JSON логов"""
+    """Formatter for structured JSON logs"""
     
     def format(self, record: logging.LogRecord) -> str:
-        """Форматирование записи лога в JSON"""
+        """Format log record to JSON"""
         
-        # Базовая структура лога
+        # Basic log structure
         log_entry = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "level": record.levelname,
@@ -35,27 +35,27 @@ class JSONFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
         
-        # Добавляем request ID если доступен
+        # Add request ID if available
         request_id = request_id_var.get()
         if request_id:
             log_entry["request_id"] = request_id
         
-        # Добавляем user ID если доступен
+        # Add user ID if available
         user_id = user_id_var.get()
         if user_id:
             log_entry["user_id"] = user_id
         
-        # Добавляем информацию о модуле и функции
+        # Add module and function information
         if record.pathname:
             log_entry["module"] = record.module
             log_entry["function"] = record.funcName
             log_entry["line"] = record.lineno
         
-        # Добавляем дополнительные поля из extra
+        # Add additional fields from extra
         if hasattr(record, 'extra_fields'):
             log_entry.update(record.extra_fields)
         
-        # Обработка исключений
+        # Exception handling
         if record.exc_info:
             log_entry["exception"] = {
                 "type": record.exc_info[0].__name__ if record.exc_info[0] else None,
@@ -63,7 +63,7 @@ class JSONFormatter(logging.Formatter):
                 "traceback": self.formatException(record.exc_info)
             }
         
-        # Добавляем метрики производительности если есть
+        # Add performance metrics if available
         if hasattr(record, 'duration_ms'):
             log_entry["duration_ms"] = record.duration_ms
         
@@ -80,26 +80,26 @@ class JSONFormatter(logging.Formatter):
 
 
 class TextFormatter(logging.Formatter):
-    """Простой текстовый форматтер для development"""
+    """Simple text formatter for development"""
     
     def format(self, record: logging.LogRecord) -> str:
-        """Форматирование записи лога в текстовом виде"""
+        """Format log record in text format"""
         timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         
-        # Базовое сообщение
+        # Basic message
         message = f"[{timestamp}] {record.levelname:8} | {record.name:20} | {record.getMessage()}"
         
-        # Добавляем request ID если есть
+        # Add request ID if available
         request_id = request_id_var.get()
         if request_id:
             message += f" | req_id={request_id[:8]}"
         
-        # Добавляем user ID если есть
+        # Add user ID if available
         user_id = user_id_var.get()
         if user_id:
             message += f" | user_id={user_id}"
         
-        # Добавляем информацию о производительности
+        # Add performance information
         if hasattr(record, 'duration_ms'):
             message += f" | {record.duration_ms}ms"
         
@@ -110,24 +110,24 @@ class TextFormatter(logging.Formatter):
 
 
 def setup_logging():
-    """Настройка системы логирования"""
+    """Logging system setup"""
     
-    # Определяем уровень логирования
+    # Determine log level
     log_level = getattr(logging, settings.log_level.upper())
     
-    # Создаем root logger
+    # Create root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(log_level)
     
-    # Удаляем существующие handlers
+    # Remove existing handlers
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
     
-    # Создаем handler для stdout
+    # Create stdout handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
     
-    # Выбираем форматтер в зависимости от настроек
+    # Choose formatter based on settings
     if settings.log_format == "json":
         formatter = JSONFormatter()
     else:
@@ -136,19 +136,19 @@ def setup_logging():
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
     
-    # Настраиваем логирование в файл если указан
+    # Setup file logging if specified
     if settings.log_file:
         file_handler = logging.FileHandler(settings.log_file, encoding='utf-8')
         file_handler.setLevel(log_level)
-        file_handler.setFormatter(JSONFormatter())  # Файлы всегда в JSON
+        file_handler.setFormatter(JSONFormatter())  # Files always in JSON
         root_logger.addHandler(file_handler)
     
-    # Настраиваем уровни для внешних библиотек
+    # Setup levels for external libraries
     logging.getLogger("uvicorn").setLevel(logging.INFO)
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     
-    # Создаем logger для приложения
+    # Create application logger
     app_logger = logging.getLogger("bookstore")
     app_logger.info("Logging system initialized", extra={
         'extra_fields': {
@@ -162,25 +162,25 @@ def setup_logging():
 
 
 def get_logger(name: str = "bookstore") -> logging.Logger:
-    """Получение logger с заданным именем"""
+    """Get logger with specified name"""
     return logging.getLogger(name)
 
 
 def set_request_context(request_id: str, user_id: Optional[str] = None):
-    """Установка контекста запроса для логирования"""
+    """Set request context for logging"""
     request_id_var.set(request_id)
     if user_id:
         user_id_var.set(user_id)
 
 
 def clear_request_context():
-    """Очистка контекста запроса"""
+    """Clear request context"""
     request_id_var.set(None)
     user_id_var.set(None)
 
 
 def log_performance(func):
-    """Декоратор для логирования производительности функций"""
+    """Decorator for logging function performance"""
     @wraps(func)
     async def async_wrapper(*args, **kwargs):
         logger = get_logger(f"bookstore.performance.{func.__module__}")
@@ -253,7 +253,7 @@ def log_performance(func):
             
             raise
     
-    # Возвращаем соответствующий wrapper в зависимости от типа функции
+    # Return appropriate wrapper based on function type
     import asyncio
     if asyncio.iscoroutinefunction(func):
         return async_wrapper
@@ -262,17 +262,17 @@ def log_performance(func):
 
 
 class LoggerMixin:
-    """Mixin для добавления логирования в классы"""
+    """Mixin for adding logging to classes"""
     
     @property
     def logger(self) -> logging.Logger:
-        """Получение logger для класса"""
+        """Get logger for class"""
         return get_logger(f"bookstore.{self.__class__.__module__}.{self.__class__.__name__}")
 
 
 def log_api_request(endpoint: str, method: str, status_code: int, duration_ms: float, 
                    user_id: Optional[str] = None, error: Optional[str] = None):
-    """Логирование API запроса"""
+    """Log API request"""
     logger = get_logger("bookstore.api")
     
     extra_fields = {
@@ -299,13 +299,13 @@ def log_api_request(endpoint: str, method: str, status_code: int, duration_ms: f
 
 def log_database_query(query: str, duration_ms: float, rows_affected: Optional[int] = None, 
                       error: Optional[str] = None):
-    """Логирование запроса к базе данных"""
+    """Log database query"""
     logger = get_logger("bookstore.database")
     
     extra_fields = {
         'query_type': 'database',
         'duration_ms': round(duration_ms, 2),
-        'query': query[:200] + "..." if len(query) > 200 else query  # Обрезаем длинные запросы
+        'query': query[:200] + "..." if len(query) > 200 else query  # Truncate long queries
     }
     
     if rows_affected is not None:
@@ -320,7 +320,7 @@ def log_database_query(query: str, duration_ms: float, rows_affected: Optional[i
 
 def log_authentication_attempt(username: str, success: bool, ip_address: Optional[str] = None, 
                               user_agent: Optional[str] = None):
-    """Логирование попытки аутентификации"""
+    """Log authentication attempt"""
     logger = get_logger("bookstore.auth")
     
     extra_fields = {
@@ -341,5 +341,5 @@ def log_authentication_attempt(username: str, success: bool, ip_address: Optiona
         logger.warning(f"Failed authentication attempt for user: {username}", extra={'extra_fields': extra_fields})
 
 
-# Инициализация логирования при импорте модуля
+# Initialize logging on module import
 logger = setup_logging()

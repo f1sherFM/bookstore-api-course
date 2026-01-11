@@ -9,7 +9,7 @@
 ![Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-**Современная, production-ready система управления книгами с полным DevOps пайплайном**
+**Modern, production-ready book management system with complete DevOps pipeline**
 
 [🚀 Quick Start](#-quick-start) • [📖 Documentation](#-api-documentation) • [🐳 Docker](#-docker-deployment) • [☸️ Kubernetes](#️-kubernetes-deployment) • [🔧 Development](#-development)
 
@@ -20,27 +20,27 @@
 ## 🌟 Features
 
 ### ⚡ Core Application
-- **FastAPI** с автоматической OpenAPI документацией
-- **SQLAlchemy** ORM с поддержкой PostgreSQL и SQLite
-- **JWT Authentication** с безопасным управлением пользователями
-- **Pydantic** модели для валидации данных
-- **Async/await** поддержка для высокой производительности
-- **CRUD операции** для книг, авторов, пользователей, отзывов
+- **FastAPI** with automatic OpenAPI documentation
+- **SQLAlchemy** ORM with PostgreSQL and SQLite support
+- **JWT Authentication** with secure user management
+- **Pydantic** models for data validation
+- **Async/await** support for high performance
+- **CRUD operations** for books, authors, users, reviews
 
 ### 🛡️ Production-Ready Infrastructure
-- **Docker** контейнеризация с multi-stage builds
-- **Docker Compose** для локальной разработки и production
-- **Kubernetes** манифесты для cloud deployment
-- **Nginx** load balancer с SSL termination
-- **PostgreSQL** с оптимизацией производительности
-- **Redis** кэширование для быстрого доступа к данным
+- **Docker** containerization with multi-stage builds
+- **Docker Compose** for local development and production
+- **Kubernetes** manifests for cloud deployment
+- **Nginx** load balancer with SSL termination
+- **PostgreSQL** with performance optimization
+- **Redis** caching for fast data access
 
 ### 📊 Monitoring & Observability
-- **Prometheus** сбор метрик приложения и системы
-- **Grafana** дашборды для визуализации производительности
-- **Loki** агрегация логов со структурированным форматом
-- **Health checks** для мониторинга состояния сервисов
-- **Structured logging** с JSON форматом и request tracing
+- **Prometheus** application and system metrics collection
+- **Grafana** dashboards for performance visualization
+- **Loki** log aggregation with structured format
+- **Health checks** for service status monitoring
+- **Structured logging** with JSON format and request tracing
 
 ### 🔒 Security & Performance
 - **Rate limiting** с разными лимитами для endpoints
@@ -51,12 +51,12 @@
 - **Backup procedures** с автоматической ротацией
 
 ### 🚀 CI/CD & Automation
-- **GitHub Actions** с полным пайплайном тестирования
+- **GitHub Actions** with complete testing pipeline
 - **Automated testing** (unit, integration, property-based, performance)
 - **Security scanning** (Bandit, Safety, Semgrep)
-- **Docker registry** интеграция с GitHub Container Registry
+- **Docker registry** integration with GitHub Container Registry
 - **Multi-environment deployment** (staging/production)
-- **Automated releases** с версионированием
+- **Automated releases** with versioning
 
 ## 🚀 Quick Start
 
@@ -334,16 +334,23 @@ make health
 bookstore-api/
 ├── 📁 bookstore/              # Main application code
 ├── 📁 tests/                  # Comprehensive test suite
+├── 📁 config/                 # Configuration files (nginx, prometheus, etc.)
+├── 📁 database/               # SQL files and database schemas
+├── 📁 scripts/                # Utility and deployment scripts
 ├── 📁 .github/workflows/      # CI/CD pipelines
 ├── 📁 k8s/                    # Kubernetes manifests
 ├── 📁 grafana/                # Monitoring dashboards
-├── 📁 scripts/                # Utility scripts
+├── 📁 docs/                   # Documentation and guides
+├── 📁 examples/               # Code examples and tutorials
 ├── 🐳 Dockerfile              # Container image
 ├── 🐳 docker-compose.yml      # Local development
 ├── 🐳 docker-compose.prod.yml # Production stack
 ├── ⚙️ Makefile                # Development commands
 ├── 📋 requirements.txt        # Python dependencies
-└── 📚 Documentation/          # Guides and docs
+├── 📚 README.md               # This file
+├── 📚 README_RU.md            # Russian documentation
+├── 📄 LICENSE                 # MIT License
+└── 📄 CHANGELOG.md            # Version history
 ```
 
 ## 🚀 Deployment Options
@@ -359,10 +366,11 @@ bookstore-api/
 
 ### Documentation
 - **API Docs**: Available at `/docs` endpoint
-- **Production Guide**: [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md)
-- **Docker Setup**: [DOCKER_SETUP.md](DOCKER_SETUP.md)
-- **CI/CD Guide**: [CI_CD_SETUP.md](CI_CD_SETUP.md)
-- **Testing Guide**: [TESTING_SUMMARY.md](TESTING_SUMMARY.md)
+- **Production Guide**: [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md)
+- **Docker Setup**: [docs/DOCKER_SETUP.md](docs/DOCKER_SETUP.md)
+- **CI/CD Guide**: [docs/CI_CD_SETUP.md](docs/CI_CD_SETUP.md)
+- **Testing Guide**: [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
+- **Project Structure**: [docs/PROJECT_STRUCTURE_DETAILED.md](docs/PROJECT_STRUCTURE_DETAILED.md)
 
 ### Troubleshooting
 ```bash
@@ -386,6 +394,9 @@ make db-backup
 
 # Restore from backup
 make db-restore BACKUP_FILE=/path/to/backup.sql
+
+# Run backup script
+./scripts/backup-script.sh
 
 # List available backups
 ls -la backups/

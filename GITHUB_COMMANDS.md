@@ -23,7 +23,7 @@ git push -u origin main
 ## 🏷️ Создание тега для релиза:
 
 ```bash
-# Создайте тег для первого релиза
+# Create tag for first release
 git tag -a v1.0.0 -m "Release v1.0.0 - Production-ready BookStore API Course
 
 🎓 Complete Python development course from basics to production
@@ -33,20 +33,20 @@ git tag -a v1.0.0 -m "Release v1.0.0 - Production-ready BookStore API Course
 🐳 Production-ready infrastructure with monitoring
 ⚡ From idea to production in 2 days"
 
-# Отправьте тег на GitHub
+# Push tag to GitHub
 git push origin v1.0.0
 ```
 
 ## 📊 Проверка статуса:
 
 ```bash
-# Проверьте статус
+# Check status
 git status
 
-# Проверьте remote
+# Check remote
 git remote -v
 
-# Проверьте теги
+# Check tags
 git tag -l
 ```
 

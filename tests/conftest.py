@@ -1,5 +1,5 @@
 """
-Конфигурация pytest и фикстуры
+Pytest configuration and fixtures
 """
 
 import pytest
@@ -15,7 +15,7 @@ from bookstore.database import get_db, Base
 from bookstore.models import User, Author, Genre, Book
 from bookstore.auth import get_password_hash, create_access_token
 
-# Тестовая база данных в памяти
+# Test database in memory
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
 engine = create_engine(
@@ -27,7 +27,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 def override_get_db():
-    """Переопределение зависимости БД для тестов"""
+    """Override DB dependency for tests"""
     try:
         db = TestingSessionLocal()
         yield db
@@ -35,13 +35,13 @@ def override_get_db():
         db.close()
 
 
-# Переопределяем зависимость
+# Override dependency
 app.dependency_overrides[get_db] = override_get_db
 
 
 @pytest.fixture(scope="session")
 def event_loop():
-    """Создание event loop для всей сессии тестов"""
+    """Create event loop for entire test session"""
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
@@ -49,7 +49,7 @@ def event_loop():
 
 @pytest.fixture(scope="function")
 def db_session():
-    """Создание тестовой сессии БД для каждого теста"""
+    """Create test DB session for each test"""
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
@@ -61,21 +61,21 @@ def db_session():
 
 @pytest.fixture(scope="function")
 def client(db_session) -> Generator[TestClient, None, None]:
-    """Тестовый клиент FastAPI"""
+    """FastAPI test client"""
     with TestClient(app) as test_client:
         yield test_client
 
 
 @pytest.fixture(scope="function")
 async def async_client(db_session) -> AsyncGenerator[AsyncClient, None]:
-    """Асинхронный тестовый клиент"""
+    """Async test client"""
     async with AsyncClient(app=app, base_url="http://test") as ac:
         yield ac
 
 
 @pytest.fixture
 def test_user(db_session) -> User:
-    """Создание тестового пользователя"""
+    """Create test user"""
     user = User(
         email="test@example.com",
         username="testuser",
@@ -92,7 +92,7 @@ def test_user(db_session) -> User:
 
 @pytest.fixture
 def test_superuser(db_session) -> User:
-    """Создание тестового суперпользователя"""
+    """Create test superuser"""
     user = User(
         email="admin@example.com",
         username="admin",
@@ -109,31 +109,31 @@ def test_superuser(db_session) -> User:
 
 @pytest.fixture
 def user_token(test_user) -> str:
-    """JWT токен для обычного пользователя"""
+    """JWT token for regular user"""
     return create_access_token(data={"sub": test_user.username})
 
 
 @pytest.fixture
 def admin_token(test_superuser) -> str:
-    """JWT токен для суперпользователя"""
+    """JWT token for superuser"""
     return create_access_token(data={"sub": test_superuser.username})
 
 
 @pytest.fixture
 def auth_headers(user_token) -> dict:
-    """Заголовки авторизации для обычного пользователя"""
+    """Authorization headers for regular user"""
     return {"Authorization": f"Bearer {user_token}"}
 
 
 @pytest.fixture
 def admin_headers(admin_token) -> dict:
-    """Заголовки авторизации для админа"""
+    """Authorization headers for admin"""
     return {"Authorization": f"Bearer {admin_token}"}
 
 
 @pytest.fixture
 def test_author(db_session) -> Author:
-    """Создание тестового автора"""
+    """Create test author"""
     author = Author(
         name="Test Author",
         biography="Test biography",
@@ -147,7 +147,7 @@ def test_author(db_session) -> Author:
 
 @pytest.fixture
 def test_genre(db_session) -> Genre:
-    """Создание тестового жанра"""
+    """Create test genre"""
     genre = Genre(
         name="Test Genre",
         description="Test genre description"
@@ -160,7 +160,7 @@ def test_genre(db_session) -> Genre:
 
 @pytest.fixture
 def test_book(db_session, test_author, test_genre) -> Book:
-    """Создание тестовой книги"""
+    """Create test book"""
     book = Book(
         title="Test Book",
         description="Test book description",

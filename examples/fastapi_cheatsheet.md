@@ -1,76 +1,76 @@
-# 🚀 FastAPI Мастер-класс - Результаты
+# 🚀 FastAPI Master Class - Results
 
-## 🎯 Что мы создали за 2 часа
+## 🎯 What we created in 2 hours
 
-### 📁 Структура проекта BookStore API
+### 📁 BookStore API Project Structure
 
 ```
 bookstore/
 ├── __init__.py
-├── main.py              # Главное приложение FastAPI
-├── models.py            # SQLAlchemy модели
-├── schemas.py           # Pydantic схемы
-├── database.py          # Конфигурация БД
-├── auth.py              # Аутентификация JWT
-└── routers/             # API роутеры
+├── main.py              # Main FastAPI application
+├── models.py            # SQLAlchemy models
+├── schemas.py           # Pydantic schemas
+├── database.py          # DB configuration
+├── auth.py              # JWT authentication
+└── routers/             # API routers
     ├── __init__.py
-    ├── books.py         # CRUD для книг
-    ├── authors.py       # CRUD для авторов
-    ├── genres.py        # CRUD для жанров
-    ├── users.py         # Управление пользователями
-    ├── reviews.py       # Отзывы на книги
-    └── reading_lists.py # Списки для чтения
+    ├── books.py         # CRUD for books
+    ├── authors.py       # CRUD for authors
+    ├── genres.py        # CRUD for genres
+    ├── users.py         # User management
+    ├── reviews.py       # Book reviews
+    └── reading_lists.py # Reading lists
 ```
 
-### 🗄️ База данных (SQLAlchemy)
+### 🗄️ Database (SQLAlchemy)
 
-**Модели:**
-- **User** - пользователи с ролями
-- **Author** - авторы книг
-- **Genre** - жанры
-- **Book** - книги (many-to-many с авторами и жанрами)
-- **Review** - отзывы пользователей
-- **ReadingList** - списки для чтения
-- **ReadingListItem** - элементы списков
+**Models:**
+- **User** - users with roles
+- **Author** - book authors
+- **Genre** - genres
+- **Book** - books (many-to-many with authors and genres)
+- **Review** - user reviews
+- **ReadingList** - reading lists
+- **ReadingListItem** - list items
 
-**Связи:**
-- Многие-ко-многим: Book ↔ Author, Book ↔ Genre
-- Один-ко-многим: User → Review, User → ReadingList
-- Внешние ключи с каскадным удалением
+**Relationships:**
+- Many-to-many: Book ↔ Author, Book ↔ Genre
+- One-to-many: User → Review, User → ReadingList
+- Foreign keys with cascade delete
 
-### 🔐 Аутентификация (JWT)
+### 🔐 Authentication (JWT)
 
 ```python
-# Основные функции
-- get_password_hash()     # Хэширование паролей
-- verify_password()       # Проверка паролей
-- create_access_token()   # Создание JWT токенов
-- get_current_user()      # Получение текущего пользователя
-- get_current_superuser() # Проверка прав админа
+# Main functions
+- get_password_hash()     # Password hashing
+- verify_password()       # Password verification
+- create_access_token()   # JWT token creation
+- get_current_user()      # Get current user
+- get_current_superuser() # Check admin rights
 ```
 
-**Эндпоинты:**
-- `POST /auth/login` - вход в систему
-- `GET /auth/me` - информация о текущем пользователе
+**Endpoints:**
+- `POST /auth/login` - login
+- `GET /auth/me` - current user information
 
-### 📊 Pydantic схемы
+### 📊 Pydantic Schemas
 
-**Паттерны валидации:**
+**Validation patterns:**
 ```python
-# Базовые схемы
+# Base schemas
 class BookBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=500)
     price: Optional[float] = Field(None, ge=0)
 
-# Схемы для создания
+# Creation schemas
 class BookCreate(BookBase):
     author_ids: List[int] = Field(..., min_items=1)
 
-# Схемы для обновления
+# Update schemas
 class BookUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1)
 
-# Схемы для ответов
+# Response schemas
 class Book(BookBase):
     id: int
     authors: List[Author] = []
@@ -81,130 +81,130 @@ class Book(BookBase):
 
 ### 🌐 API Endpoints
 
-#### Книги (`/api/v1/books/`)
-- `GET /` - список книг с поиском и фильтрацией
-- `GET /{id}` - детали книги со статистикой
-- `POST /` - создание книги (админ)
-- `PUT /{id}` - обновление книги (админ)
-- `DELETE /{id}` - удаление книги (админ)
-- `GET /stats` - статистика по книгам
+#### Books (`/api/v1/books/`)
+- `GET /` - book list with search and filtering
+- `GET /{id}` - book details with statistics
+- `POST /` - create book (admin)
+- `PUT /{id}` - update book (admin)
+- `DELETE /{id}` - delete book (admin)
+- `GET /stats` - book statistics
 
-#### Пользователи (`/api/v1/users/`)
-- `GET /` - список пользователей (админ)
-- `GET /me` - текущий пользователь
-- `GET /{id}` - пользователь по ID
-- `POST /` - регистрация
-- `PUT /{id}` - обновление профиля
-- `DELETE /{id}` - удаление (админ)
+#### Users (`/api/v1/users/`)
+- `GET /` - user list (admin)
+- `GET /me` - current user
+- `GET /{id}` - user by ID
+- `POST /` - registration
+- `PUT /{id}` - update profile
+- `DELETE /{id}` - delete (admin)
 
-#### Отзывы (`/api/v1/reviews/`)
-- `GET /` - список отзывов с фильтрацией
-- `POST /` - создание отзыва
-- `PUT /{id}` - обновление отзыва
-- `DELETE /{id}` - удаление отзыва
+#### Reviews (`/api/v1/reviews/`)
+- `GET /` - review list with filtering
+- `POST /` - create review
+- `PUT /{id}` - update review
+- `DELETE /{id}` - delete review
 
-#### Списки чтения (`/api/v1/reading-lists/`)
-- `GET /` - мои списки
-- `GET /public` - публичные списки
-- `POST /` - создание списка
-- `POST /{id}/books` - добавление книги
-- `DELETE /{id}/books/{book_id}` - удаление книги
+#### Reading Lists (`/api/v1/reading-lists/`)
+- `GET /` - my lists
+- `GET /public` - public lists
+- `POST /` - create list
+- `POST /{id}/books` - add book
+- `DELETE /{id}/books/{book_id}` - remove book
 
-### 🔍 Продвинутые возможности
+### 🔍 Advanced Features
 
-#### Поиск и фильтрация
+#### Search and filtering
 ```python
-# Параметры поиска книг
-GET /api/v1/books/?q=война&author=толстой&min_price=100&max_price=1000
+# Book search parameters
+GET /api/v1/books/?q=war&author=tolstoy&min_price=100&max_price=1000
 ```
 
-#### Пагинация
+#### Pagination
 ```python
 GET /api/v1/books/?page=1&size=20
 ```
 
-#### Сортировка
+#### Sorting
 ```python
 GET /api/v1/books/?sort_by=price&sort_order=desc
 ```
 
-#### Статистика
+#### Statistics
 ```python
 GET /api/v1/books/stats
-# Возвращает: общее количество, средняя цена, и т.д.
+# Returns: total count, average price, etc.
 ```
 
-### 📚 Автоматическая документация
+### 📚 Automatic Documentation
 
 **Swagger UI:** `http://localhost:8000/docs`
 **ReDoc:** `http://localhost:8000/redoc`
 
-### 🛡️ Безопасность
+### 🛡️ Security
 
-- **JWT токены** для аутентификации
-- **Bcrypt** для хэширования паролей
-- **Роли пользователей** (обычный/суперпользователь)
-- **Валидация данных** через Pydantic
-- **CORS middleware** для фронтенда
+- **JWT tokens** for authentication
+- **Bcrypt** for password hashing
+- **User roles** (regular/superuser)
+- **Data validation** through Pydantic
+- **CORS middleware** for frontend
 
-### ⚡ Производительность
+### ⚡ Performance
 
-- **Eager loading** с `joinedload()` для связанных данных
-- **Индексы** на часто используемые поля
-- **Пагинация** для больших списков
-- **Кэширование** на уровне БД
+- **Eager loading** with `joinedload()` for related data
+- **Indexes** on frequently used fields
+- **Pagination** for large lists
+- **Caching** at DB level
 
-## 🎓 Изученные концепции
+## 🎓 Learned Concepts
 
 ### FastAPI
-- ✅ Создание API с автоматической документацией
-- ✅ Dependency Injection система
-- ✅ Валидация данных с Pydantic
-- ✅ Middleware и CORS
-- ✅ Обработка ошибок и статус коды
+- ✅ Creating API with automatic documentation
+- ✅ Dependency Injection system
+- ✅ Data validation with Pydantic
+- ✅ Middleware and CORS
+- ✅ Error handling and status codes
 
 ### SQLAlchemy
-- ✅ Декларативные модели
-- ✅ Связи между таблицами (One-to-Many, Many-to-Many)
-- ✅ Миграции и создание схемы
-- ✅ Сложные запросы с JOIN
-- ✅ Eager loading для оптимизации
+- ✅ Declarative models
+- ✅ Table relationships (One-to-Many, Many-to-Many)
+- ✅ Migrations and schema creation
+- ✅ Complex queries with JOIN
+- ✅ Eager loading for optimization
 
-### Аутентификация
-- ✅ JWT токены
-- ✅ Хэширование паролей
-- ✅ OAuth2 схема
-- ✅ Middleware для проверки токенов
-- ✅ Роли и права доступа
+### Authentication
+- ✅ JWT tokens
+- ✅ Password hashing
+- ✅ OAuth2 scheme
+- ✅ Token verification middleware
+- ✅ Roles and access rights
 
-### Архитектура
-- ✅ Разделение на слои (models, schemas, routers)
+### Architecture
+- ✅ Layer separation (models, schemas, routers)
 - ✅ Dependency Injection
-- ✅ Конфигурация через переменные окружения
-- ✅ Модульная структура проекта
+- ✅ Configuration through environment variables
+- ✅ Modular project structure
 
-## 🚀 Запуск проекта
+## 🚀 Running the Project
 
 ```bash
-# Установка зависимостей
+# Install dependencies
 pip install -r fastapi_requirements.txt
 
-# Запуск сервера
+# Start server
 python run_bookstore.py
 
-# Документация
+# Documentation
 http://localhost:8000/docs
 ```
 
-## 🎯 Следующие шаги
+## 🎯 Next Steps
 
-Для production готовности добавить:
-- ✅ Alembic миграции
-- ✅ Docker контейнеризация
-- ✅ Тестирование (pytest + httpx)
-- ✅ Логирование и мониторинг
+For production readiness add:
+- ✅ Alembic migrations
+- ✅ Docker containerization
+- ✅ Testing (pytest + httpx)
+- ✅ Logging and monitoring
 - ✅ Rate limiting
-- ✅ Кэширование (Redis)
+- ✅ Caching (Redis)
 - ✅ CI/CD pipeline
 
-**Поздравляю! Ты создал современный, production-ready REST API! 🎉**
+**Congratulations! You created a modern, production-ready REST API! 🎉**

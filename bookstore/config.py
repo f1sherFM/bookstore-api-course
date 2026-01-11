@@ -1,5 +1,5 @@
 """
-Система управления конфигурацией для BookStore API
+Configuration management system for BookStore API
 """
 
 import os
@@ -10,12 +10,12 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    """Основные настройки приложения"""
+    """Main application settings"""
     
     # Application Info
     app_name: str = "BookStore API"
     app_version: str = "1.0.0"
-    description: str = "Современная система управления книгами"
+    description: str = "Modern book management system"
     
     # Environment
     environment: str = Field(default="development", env="ENVIRONMENT")
@@ -84,29 +84,29 @@ class Settings(BaseSettings):
     
     @property
     def allowed_origins_list(self) -> List[str]:
-        """Получение списка разрешенных origins"""
+        """Get list of allowed origins"""
         return [origin.strip() for origin in self.allowed_origins.split(",") if origin.strip()]
     
     @property
     def allowed_methods_list(self) -> List[str]:
-        """Получение списка разрешенных методов"""
+        """Get list of allowed methods"""
         return [method.strip() for method in self.allowed_methods.split(",") if method.strip()]
     
     @property
     def allowed_headers_list(self) -> List[str]:
-        """Получение списка разрешенных заголовков"""
+        """Get list of allowed headers"""
         if self.allowed_headers == "*":
             return ["*"]
         return [header.strip() for header in self.allowed_headers.split(",") if header.strip()]
     
     @property
     def allowed_file_types_list(self) -> List[str]:
-        """Получение списка разрешенных типов файлов"""
+        """Get list of allowed file types"""
         return [file_type.strip() for file_type in self.allowed_file_types.split(",") if file_type.strip()]
     
     @validator("log_level")
     def validate_log_level(cls, v):
-        """Валидация уровня логирования"""
+        """Log level validation"""
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if v.upper() not in valid_levels:
             raise ValueError(f"Log level must be one of: {valid_levels}")
@@ -114,7 +114,7 @@ class Settings(BaseSettings):
     
     @validator("log_format")
     def validate_log_format(cls, v):
-        """Валидация формата логирования"""
+        """Log format validation"""
         valid_formats = ["json", "text"]
         if v.lower() not in valid_formats:
             raise ValueError(f"Log format must be one of: {valid_formats}")
@@ -122,7 +122,7 @@ class Settings(BaseSettings):
     
     @validator("environment")
     def validate_environment(cls, v):
-        """Валидация окружения"""
+        """Environment validation"""
         valid_environments = ["development", "staging", "production", "testing"]
         if v.lower() not in valid_environments:
             raise ValueError(f"Environment must be one of: {valid_environments}")
@@ -130,21 +130,21 @@ class Settings(BaseSettings):
     
     @property
     def is_development(self) -> bool:
-        """Проверка development окружения"""
+        """Check development environment"""
         return self.environment == "development"
     
     @property
     def is_production(self) -> bool:
-        """Проверка production окружения"""
+        """Check production environment"""
         return self.environment == "production"
     
     @property
     def is_testing(self) -> bool:
-        """Проверка testing окружения"""
+        """Check testing environment"""
         return self.environment == "testing"
     
     def get_database_config(self) -> dict:
-        """Получение конфигурации базы данных"""
+        """Get database configuration"""
         return {
             "url": self.database_url,
             "echo": self.database_echo and self.is_development,
@@ -155,7 +155,7 @@ class Settings(BaseSettings):
         }
     
     def get_redis_config(self) -> dict:
-        """Получение конфигурации Redis"""
+        """Get Redis configuration"""
         return {
             "url": self.redis_url,
             "password": self.redis_password,
@@ -166,7 +166,7 @@ class Settings(BaseSettings):
         }
     
     def get_cors_config(self) -> dict:
-        """Получение конфигурации CORS"""
+        """Get CORS configuration"""
         return {
             "allow_origins": self.allowed_origins_list,
             "allow_credentials": True,
@@ -181,42 +181,42 @@ class Settings(BaseSettings):
 
 
 class DevelopmentSettings(Settings):
-    """Настройки для разработки"""
+    """Development settings"""
     environment: str = "development"
     debug: bool = True
     log_level: str = "DEBUG"
     database_echo: bool = True
     
-    # Более мягкие лимиты для разработки
+    # More lenient limits for development
     rate_limit_per_minute: int = 1000
     auth_rate_limit_per_minute: int = 100
 
 
 class StagingSettings(Settings):
-    """Настройки для staging окружения"""
+    """Staging environment settings"""
     environment: str = "staging"
     debug: bool = False
     log_level: str = "INFO"
     
-    # Умеренные лимиты для staging
+    # Moderate limits for staging
     rate_limit_per_minute: int = 200
     auth_rate_limit_per_minute: int = 30
 
 
 class ProductionSettings(Settings):
-    """Настройки для production окружения"""
+    """Production environment settings"""
     environment: str = "production"
     debug: bool = False
     log_level: str = "WARNING"
     
-    # Строгие лимиты для production
+    # Strict limits for production
     rate_limit_per_minute: int = 60
     auth_rate_limit_per_minute: int = 10
     
-    # Дополнительная валидация для production
+    # Additional validation for production
     @validator("secret_key")
     def validate_production_secret_key(cls, v):
-        """Валидация секретного ключа в production"""
+        """Production secret key validation"""
         if len(v) < 32:
             raise ValueError("Secret key must be at least 32 characters in production")
         if v in ["dev-secret-key", "change-me", "your-secret-key-here"]:
@@ -225,7 +225,7 @@ class ProductionSettings(Settings):
     
     @validator("jwt_secret_key")
     def validate_production_jwt_key(cls, v):
-        """Валидация JWT ключа в production"""
+        """Production JWT key validation"""
         if len(v) < 32:
             raise ValueError("JWT secret key must be at least 32 characters in production")
         if v in ["dev-jwt-secret", "change-me", "your-jwt-secret-here"]:
@@ -234,28 +234,28 @@ class ProductionSettings(Settings):
 
 
 class TestingSettings(Settings):
-    """Настройки для тестирования"""
+    """Testing settings"""
     environment: str = "testing"
     debug: bool = True
     log_level: str = "DEBUG"
     
-    # Тестовая база данных
+    # Test database
     database_url: str = "sqlite:///./test.db"
     
-    # Отключаем внешние сервисы для тестов
-    redis_url: str = "redis://localhost:6379/1"  # Отдельная БД для тестов
+    # Disable external services for tests
+    redis_url: str = "redis://localhost:6379/1"  # Separate DB for tests
     cache_enabled: bool = False
     metrics_enabled: bool = False
     
-    # Быстрые JWT токены для тестов
+    # Fast JWT tokens for tests
     jwt_expire_minutes: int = 5
 
 
 @lru_cache()
 def get_settings() -> Settings:
     """
-    Получение настроек приложения с кэшированием
-    Автоматически выбирает класс настроек на основе переменной ENVIRONMENT
+    Get application settings with caching
+    Automatically selects settings class based on ENVIRONMENT variable
     """
     environment = os.getenv("ENVIRONMENT", "development").lower()
     
@@ -270,12 +270,12 @@ def get_settings() -> Settings:
     return settings_class()
 
 
-# Глобальный экземпляр настроек
+# Global settings instance
 settings = get_settings()
 
 
 def reload_settings():
-    """Перезагрузка настроек (полезно для тестов)"""
+    """Reload settings (useful for tests)"""
     get_settings.cache_clear()
     global settings
     settings = get_settings()

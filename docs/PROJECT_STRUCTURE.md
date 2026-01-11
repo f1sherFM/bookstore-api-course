@@ -8,15 +8,17 @@ This document provides a comprehensive overview of the BookStore API project str
 bookstore-api/
 ├── 📁 bookstore/              # Main application package
 ├── 📁 tests/                  # Test suite
+├── 📁 config/                 # Configuration files (nginx, prometheus, etc.)
+├── 📁 database/               # SQL files and database schemas
 ├── 📁 docs/                   # Documentation
 ├── 📁 examples/               # Code examples and tutorials
-├── 📁 scripts/                # Utility scripts
+├── 📁 scripts/                # Utility and deployment scripts
 ├── 📁 k8s/                    # Kubernetes manifests
 ├── 📁 grafana/                # Monitoring dashboards
 ├── 📁 .github/                # GitHub workflows and templates
 ├── 📁 .kiro/                  # Kiro specifications
 ├── 🐳 Docker files            # Container configuration
-├── ⚙️ Configuration files     # App configuration
+├── ⚙️ Configuration files     # App configuration (root level)
 ├── 📋 Requirements files      # Python dependencies
 ├── 📚 Documentation files     # Project documentation
 └── 🔧 Development tools       # Makefile, scripts, etc.
@@ -155,7 +157,10 @@ Utility scripts for development and operations:
 ```
 scripts/
 ├── setup-dev.sh               # Development environment setup
-└── production-health-check.sh # Production monitoring script
+├── production-health-check.sh # Production monitoring script
+├── backup-script.sh           # Database backup automation
+├── validate-project.sh        # Project validation script
+└── validate-project.ps1       # Windows project validation script
 ```
 
 ## ☸️ Kubernetes (`k8s/`)
@@ -212,16 +217,36 @@ Docker-related files in the root directory:
 
 ## ⚙️ Configuration Files
 
-Application configuration in the root directory:
+### Infrastructure Configuration (`config/`)
+
+Centralized configuration files for infrastructure components:
+
+```
+config/
+├── nginx.conf                 # Development Nginx configuration
+├── nginx-prod.conf            # Production Nginx configuration
+├── prometheus.yml             # Metrics collection configuration
+├── loki.yml                   # Log aggregation configuration
+├── promtail.yml               # Log shipping configuration
+└── redis.conf                 # Redis cache configuration
+```
+
+### Database Files (`database/`)
+
+SQL files and database schemas:
+
+```
+database/
+├── init.sql                   # Development database initialization
+└── init-prod.sql              # Production database initialization
+```
+
+### Application Configuration (Root Level)
+
+Application-specific configuration in the root directory:
 
 - `.env.example` - Environment variables template
 - `.env.production` - Production environment template
-- `nginx.conf` - Development Nginx configuration
-- `nginx-prod.conf` - Production Nginx configuration
-- `prometheus.yml` - Metrics collection configuration
-- `loki.yml` - Log aggregation configuration
-- `promtail.yml` - Log shipping configuration
-- `redis.conf` - Redis cache configuration
 
 ## 📋 Dependencies
 

@@ -1,79 +1,80 @@
-# 🐳 Docker и DevOps - Полное руководство
+# 🐳 Docker & DevOps - Complete Guide
 
-## 🎯 Что мы изучим
+## 🎯 What We'll Learn
 
-Это руководство покрывает все аспекты современного DevOps на примере нашего BookStore API проекта.
+This guide covers all aspects of modern DevOps using our BookStore API project as an example.
 
-### 📁 DevOps структура
+### 📁 DevOps Structure
 
 ```
 bookstore-api/
-├── 🐳 Dockerfile                   # Многоэтапная сборка контейнера
-├── 🐳 docker-compose.yml           # Локальная разработка
-├── 🐳 docker-compose.prod.yml      # Production окружение
-├── 📁 k8s/                         # Kubernetes манифесты
-├── 📁 .github/workflows/           # CI/CD пайплайны
-├── 📁 grafana/                     # Мониторинг дашборды
-├── 🔧 nginx.conf                   # Конфигурация веб-сервера
-├── 📊 prometheus.yml               # Сбор метрик
-└── 📋 Makefile                     # Автоматизация команд
+├── 🐳 Dockerfile                   # Multi-stage container build
+├── 🐳 docker-compose.yml           # Local development
+├── 🐳 docker-compose.prod.yml      # Production environment
+├── 📁 k8s/                         # Kubernetes manifests
+├── 📁 .github/workflows/           # CI/CD pipelines
+├── 📁 grafana/                     # Monitoring dashboards
+├── 📁 config/                      # Configuration files
+├── 📁 database/                    # SQL files and DB schemas
+├── 📊 prometheus.yml               # Metrics collection (in config/)
+└── 📋 Makefile                     # Command automation
 ```
 
-## 🐳 Docker контейнеризация
+## 🐳 Docker Containerization
 
-### Многоэтапный Dockerfile
+### Multi-stage Dockerfile
 
 ```dockerfile
 # Dockerfile
-# Этап 1: Базовый образ с зависимостями
+# Stage 1: Base image with dependencies
 FROM python:3.11-slim as base
 
 WORKDIR /app
 
-# Установка системных зависимостей
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Копирование файлов зависимостей
+# Copy dependency files
 COPY requirements.txt fastapi_requirements.txt ./
 
-# Установка Python зависимостей
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir -r fastapi_requirements.txt
 
-# Этап 2: Production образ
+# Stage 2: Production image
 FROM python:3.11-slim as production
 
 WORKDIR /app
 
-# Создание пользователя без root прав
+# Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Копирование зависимостей из базового образа
+# Copy dependencies from base image
 COPY --from=base /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=base /usr/local/bin /usr/local/bin
 
-# Копирование кода приложения
+# Copy application code
 COPY bookstore/ ./bookstore/
 COPY run_bookstore.py ./
 
-# Установка прав доступа
+# Set permissions
 RUN chown -R appuser:appuser /app
 USER appuser
 
-# Настройка переменных окружения
+# Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-# Открытие порта
+# Expose port
 EXPOSE 8000
 
-# Команда запуска
+# Start command
 CMD ["python", "run_bookstore.py"]
 ```
 
-### Docker Compose для разработки
+### Docker Compose for Development
 
 ```yaml
 # docker-compose.yml
@@ -131,7 +132,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx-prod.conf:/etc/nginx/nginx.conf
+      - ./config/nginx-prod.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
     depends_on:
       - api
@@ -158,7 +159,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
-      - ./init-prod.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/init-prod.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
 
   redis:
@@ -193,9 +194,9 @@ volumes:
   grafana_data:
 ```
 
-## ☸️ Kubernetes развертывание
+## ☸️ Kubernetes Deployment
 
-### Namespace и ConfigMap
+### Namespace and ConfigMap
 
 ```yaml
 # k8s/namespace.yaml
@@ -218,7 +219,7 @@ data:
   LOG_LEVEL: "INFO"
 ```
 
-### Deployment и Service
+### Deployment and Service
 
 ```yaml
 # k8s/api-deployment.yaml
@@ -322,7 +323,7 @@ spec:
         averageUtilization: 80
 ```
 
-## 🚀 CI/CD пайплайн
+## 🚀 CI/CD Pipeline
 
 ### GitHub Actions Workflow
 
@@ -438,12 +439,12 @@ jobs:
     - name: Deploy to production
       run: |
         echo "Deploying to production..."
-        # Здесь будет код развертывания
+        # Deployment code will be here
 ```
 
-## 📊 Мониторинг и наблюдаемость
+## 📊 Monitoring and Observability
 
-### Prometheus конфигурация
+### Prometheus Configuration
 
 ```yaml
 # prometheus.yml
@@ -480,7 +481,7 @@ alerting:
           - alertmanager:9093
 ```
 
-### Grafana дашборд
+### Grafana Dashboard
 
 ```json
 {
@@ -521,7 +522,7 @@ alerting:
 }
 ```
 
-## 🔧 Автоматизация с Makefile
+## 🔧 Automation with Makefile
 
 ```makefile
 # Makefile
@@ -587,12 +588,12 @@ clean: ## Очистить временные файлы
 	rm -rf .coverage htmlcov/ .pytest_cache/
 ```
 
-## 🔒 Безопасность
+## 🔒 Security
 
-### Секреты в Kubernetes
+### Secrets in Kubernetes
 
 ```yaml
-# k8s/secrets.yaml (шаблон)
+# k8s/secrets.yaml (template)
 apiVersion: v1
 kind: Secret
 metadata:
@@ -605,7 +606,7 @@ data:
   jwt-secret: <base64-encoded-jwt-secret>
 ```
 
-### Nginx конфигурация с безопасностью
+### Nginx Configuration with Security
 
 ```nginx
 # nginx-prod.conf
@@ -614,14 +615,14 @@ events {
 }
 
 http {
-    # Базовые настройки
+    # Basic settings
     sendfile on;
     tcp_nopush on;
     tcp_nodelay on;
     keepalive_timeout 65;
     types_hash_max_size 2048;
     
-    # Безопасность
+    # Security
     server_tokens off;
     add_header X-Frame-Options DENY;
     add_header X-Content-Type-Options nosniff;
@@ -646,7 +647,7 @@ http {
         listen 443 ssl http2;
         server_name api.yourdomain.com;
         
-        # SSL конфигурация
+        # SSL configuration
         ssl_certificate /etc/nginx/ssl/cert.pem;
         ssl_certificate_key /etc/nginx/ssl/key.pem;
         ssl_protocols TLSv1.2 TLSv1.3;
@@ -662,7 +663,7 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
         
-        # Auth endpoints (более строгие лимиты)
+        # Auth endpoints (stricter limits)
         location /auth/ {
             limit_req zone=auth burst=10 nodelay;
             proxy_pass http://api_backend;
@@ -681,72 +682,72 @@ http {
 }
 ```
 
-## 📈 Лучшие практики DevOps
+## 📈 DevOps Best Practices
 
-### 1. Контейнеризация
-- ✅ Многоэтапные Dockerfile для оптимизации размера
-- ✅ Непривилегированные пользователи в контейнерах
-- ✅ Минимальные базовые образы (alpine, slim)
-- ✅ .dockerignore для исключения ненужных файлов
+### 1. Containerization
+- ✅ Multi-stage Dockerfiles for size optimization
+- ✅ Non-privileged users in containers
+- ✅ Minimal base images (alpine, slim)
+- ✅ .dockerignore to exclude unnecessary files
 
-### 2. Оркестрация
-- ✅ Kubernetes для production развертывания
-- ✅ Health checks и readiness probes
-- ✅ Resource limits и requests
+### 2. Orchestration
+- ✅ Kubernetes for production deployment
+- ✅ Health checks and readiness probes
+- ✅ Resource limits and requests
 - ✅ Horizontal Pod Autoscaling
 
 ### 3. CI/CD
-- ✅ Автоматизированное тестирование
-- ✅ Сканирование безопасности
-- ✅ Сборка и публикация образов
-- ✅ Развертывание по веткам
+- ✅ Automated testing
+- ✅ Security scanning
+- ✅ Image building and publishing
+- ✅ Branch-based deployment
 
-### 4. Мониторинг
-- ✅ Сбор метрик с Prometheus
-- ✅ Визуализация с Grafana
-- ✅ Структурированное логирование
-- ✅ Алерты и уведомления
+### 4. Monitoring
+- ✅ Metrics collection with Prometheus
+- ✅ Visualization with Grafana
+- ✅ Structured logging
+- ✅ Alerts and notifications
 
-### 5. Безопасность
-- ✅ Управление секретами
+### 5. Security
+- ✅ Secrets management
 - ✅ Network policies
 - ✅ Rate limiting
-- ✅ SSL/TLS шифрование
+- ✅ SSL/TLS encryption
 
-## 🎉 Заключение
+## 🎉 Conclusion
 
-### Что мы изучили
+### What We Learned
 
 **Docker:**
-- ✅ Многоэтапные Dockerfile
-- ✅ Docker Compose для разработки и production
-- ✅ Оптимизация образов и безопасность
+- ✅ Multi-stage Dockerfiles
+- ✅ Docker Compose for development and production
+- ✅ Image optimization and security
 
 **Kubernetes:**
 - ✅ Deployments, Services, ConfigMaps
-- ✅ Secrets и управление конфигурацией
-- ✅ Auto-scaling и health checks
+- ✅ Secrets and configuration management
+- ✅ Auto-scaling and health checks
 
 **CI/CD:**
-- ✅ GitHub Actions пайплайны
-- ✅ Автоматизированное тестирование
-- ✅ Сборка и развертывание образов
+- ✅ GitHub Actions pipelines
+- ✅ Automated testing
+- ✅ Image building and deployment
 
-**Мониторинг:**
-- ✅ Prometheus для сбора метрик
-- ✅ Grafana для визуализации
-- ✅ Структурированное логирование
+**Monitoring:**
+- ✅ Prometheus for metrics collection
+- ✅ Grafana for visualization
+- ✅ Structured logging
 
-**Автоматизация:**
-- ✅ Makefile для команд разработки
-- ✅ Скрипты развертывания
-- ✅ Health check мониторинг
+**Automation:**
+- ✅ Makefile for development commands
+- ✅ Deployment scripts
+- ✅ Health check monitoring
 
-### Следующие шаги
+### Next Steps
 
-1. **Практика**: Разверните свой проект с Docker
-2. **Kubernetes**: Изучите продвинутые возможности K8s
-3. **Мониторинг**: Настройте алерты и дашборды
-4. **Безопасность**: Внедрите security best practices
+1. **Practice**: Deploy your project with Docker
+2. **Kubernetes**: Learn advanced K8s features
+3. **Monitoring**: Set up alerts and dashboards
+4. **Security**: Implement security best practices
 
-**Теперь вы знаете как создавать production-ready системы! 🚀**
+**Now you know how to create production-ready systems! 🚀**

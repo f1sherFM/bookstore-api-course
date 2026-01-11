@@ -1,5 +1,5 @@
 """
-Роутер для работы с отзывами
+Router for working with reviews
 """
 
 from typing import List
@@ -20,7 +20,7 @@ async def get_reviews(
     user_id: int = None,
     db: Session = Depends(get_db)
 ):
-    """Получение списка отзывов с фильтрацией"""
+    """Get list of reviews with filtering"""
     query = db.query(Review).options(
         joinedload(Review.user),
         joinedload(Review.book)
@@ -38,7 +38,7 @@ async def get_reviews(
 
 @router.get("/{review_id}", response_model=ReviewSchema)
 async def get_review(review_id: int, db: Session = Depends(get_db)):
-    """Получение отзыва по ID"""
+    """Get review by ID"""
     review = db.query(Review).options(
         joinedload(Review.user),
         joinedload(Review.book)
@@ -58,9 +58,9 @@ async def create_review(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Создание отзыва"""
+    """Create review"""
     
-    # Проверяем существование книги
+    # Check book exists
     book = db.query(Book).filter(Book.id == review_data.book_id).first()
     if not book:
         raise HTTPException(
@@ -68,7 +68,7 @@ async def create_review(
             detail="Book not found"
         )
     
-    # Проверяем, что пользователь еще не оставлял отзыв на эту книгу
+    # Check user hasn't already reviewed this book
     existing_review = db.query(Review).filter(
         Review.user_id == current_user.id,
         Review.book_id == review_data.book_id
@@ -80,7 +80,7 @@ async def create_review(
             detail="You have already reviewed this book"
         )
     
-    # Создаем отзыв
+    # Create review
     review_dict = review_data.model_dump()
     review_dict["user_id"] = current_user.id
     
@@ -99,7 +99,7 @@ async def update_review(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Обновление отзыва"""
+    """Update review"""
     review = db.query(Review).filter(Review.id == review_id).first()
     if not review:
         raise HTTPException(
@@ -107,7 +107,7 @@ async def update_review(
             detail="Review not found"
         )
     
-    # Проверяем права доступа
+    # Check access permissions
     if review.user_id != current_user.id and not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -129,7 +129,7 @@ async def delete_review(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_active_user)
 ):
-    """Удаление отзыва"""
+    """Delete review"""
     review = db.query(Review).filter(Review.id == review_id).first()
     if not review:
         raise HTTPException(
@@ -137,7 +137,7 @@ async def delete_review(
             detail="Review not found"
         )
     
-    # Проверяем права доступа
+    # Check access permissions
     if review.user_id != current_user.id and not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -1,5 +1,5 @@
 """
-Тесты производительности и нагрузки
+Performance and load tests
 """
 
 import pytest
@@ -14,20 +14,20 @@ from .factories import create_test_library, BookFactory, UserFactory, AuthorFact
 
 
 class TestDatabasePerformance:
-    """Тесты производительности базы данных"""
+    """Database performance tests"""
     
     def test_book_query_performance(self, db_session):
-        """Тест производительности запросов книг"""
-        # Создаем большую библиотеку
+        """Test book query performance"""
+        # Create large library
         library = create_test_library(db_session, num_books=100)
         
-        # Измеряем время выполнения различных запросов
+        # Measure execution time of various queries
         times = []
         
         for _ in range(10):
             start_time = time.perf_counter()
             
-            # Сложный запрос с JOIN
+            # Complex query with JOIN
             books = db_session.query(Book).join(Book.authors).join(Book.genres).limit(20).all()
             
             end_time = time.perf_counter()
@@ -36,13 +36,13 @@ class TestDatabasePerformance:
         avg_time = statistics.mean(times)
         max_time = max(times)
         
-        # Проверяем, что запросы выполняются достаточно быстро
-        assert avg_time < 0.5, f"Средний время запроса слишком большое: {avg_time:.3f}s"
-        assert max_time < 1.0, f"Максимальное время запроса слишком большое: {max_time:.3f}s"
-        assert len(books) > 0, "Должны быть найдены книги с авторами и жанрами"
+        # Check that queries execute fast enough
+        assert avg_time < 0.5, f"Average query time too high: {avg_time:.3f}s"
+        assert max_time < 1.0, f"Maximum query time too high: {max_time:.3f}s"
+        assert len(books) > 0, "Should find books with authors and genres"
     
     def test_search_performance(self, db_session):
-        """Тест производительности поиска"""
+        """Test search performance"""
         library = create_test_library(db_session, num_books=200)
         
         search_terms = ["test", "book", "author", "genre", "classic"]
@@ -51,7 +51,7 @@ class TestDatabasePerformance:
         for term in search_terms:
             start_time = time.perf_counter()
             
-            # Поиск по названию и описанию
+            # Search by title and description
             results = db_session.query(Book).filter(
                 Book.title.ilike(f"%{term}%") | 
                 Book.description.ilike(f"%{term}%")
@@ -62,17 +62,17 @@ class TestDatabasePerformance:
         
         avg_time = statistics.mean(times)
         
-        # Поиск должен быть быстрым даже по большой базе
-        assert avg_time < 0.2, f"Поиск слишком медленный: {avg_time:.3f}s"
+        # Search should be fast even on large database
+        assert avg_time < 0.2, f"Search too slow: {avg_time:.3f}s"
     
     def test_pagination_performance(self, db_session):
-        """Тест производительности пагинации"""
+        """Test pagination performance"""
         library = create_test_library(db_session, num_books=500)
         
         page_size = 20
         times = []
         
-        # Тестируем разные страницы
+        # Test different pages
         for page in [1, 5, 10, 20]:
             offset = (page - 1) * page_size
             
@@ -85,26 +85,26 @@ class TestDatabasePerformance:
         
         avg_time = statistics.mean(times)
         
-        # Пагинация должна работать быстро на любой странице
-        assert avg_time < 0.1, f"Пагинация слишком медленная: {avg_time:.3f}s"
+        # Pagination should work fast on any page
+        assert avg_time < 0.1, f"Pagination too slow: {avg_time:.3f}s"
         
-        # Проверяем, что время не растет значительно для дальних страниц
+        # Check that time doesn't grow significantly for distant pages
         first_page_time = times[0]
         last_page_time = times[-1]
         
-        # Время последней страницы не должно быть в 10 раз больше первой
+        # Last page time should not be 10x more than first page
         assert last_page_time < first_page_time * 10
 
 
 class TestAPIPerformance:
-    """Тесты производительности API"""
+    """API performance tests"""
     
     def test_concurrent_requests(self, client, db_session):
-        """Тест параллельных запросов"""
+        """Test concurrent requests"""
         library = create_test_library(db_session, num_books=50)
         
         def make_request():
-            """Выполнение одного запроса"""
+            """Execute one request"""
             start_time = time.perf_counter()
             response = client.get("/api/v1/books/")
             end_time = time.perf_counter()
@@ -115,27 +115,27 @@ class TestAPIPerformance:
                 'books_count': len(response.json()) if response.status_code == 200 else 0
             }
         
-        # Выполняем 20 параллельных запросов
+        # Execute 20 parallel requests
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(make_request) for _ in range(20)]
             results = [future.result() for future in futures]
         
-        # Анализируем результаты
+        # Analyze results
         times = [r['time'] for r in results]
         status_codes = [r['status_code'] for r in results]
         
-        # Все запросы должны быть успешными
+        # All requests should be successful
         assert all(code == 200 for code in status_codes)
         
-        # Среднее время ответа должно быть разумным
+        # Average response time should be reasonable
         avg_time = statistics.mean(times)
         max_time = max(times)
         
-        assert avg_time < 2.0, f"Среднее время ответа слишком большое: {avg_time:.3f}s"
-        assert max_time < 5.0, f"Максимальное время ответа слишком большое: {max_time:.3f}s"
+        assert avg_time < 2.0, f"Average response time too high: {avg_time:.3f}s"
+        assert max_time < 5.0, f"Maximum response time too high: {max_time:.3f}s"
     
     def test_memory_usage_stability(self, client, db_session):
-        """Тест стабильности использования памяти"""
+        """Test memory usage stability"""
         import psutil
         import os
         
@@ -144,7 +144,7 @@ class TestAPIPerformance:
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
         
-        # Выполняем много запросов
+        # Execute many requests
         for _ in range(100):
             response = client.get("/api/v1/books/")
             assert response.status_code == 200
@@ -152,16 +152,16 @@ class TestAPIPerformance:
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         memory_growth = final_memory - initial_memory
         
-        # Рост памяти не должен быть критическим
-        assert memory_growth < 100, f"Слишком большой рост памяти: {memory_growth:.1f}MB"
+        # Memory growth should not be critical
+        assert memory_growth < 100, f"Too much memory growth: {memory_growth:.1f}MB"
     
     def test_simple_performance(self, client, db_session):
-        """Простой тест производительности без async"""
+        """Simple performance test without async"""
         library = create_test_library(db_session, num_books=30)
         
         times = []
         
-        # Выполняем 20 последовательных запросов
+        # Execute 20 sequential requests
         for _ in range(20):
             start_time = time.perf_counter()
             response = client.get("/api/v1/books/")
@@ -173,30 +173,30 @@ class TestAPIPerformance:
         avg_time = statistics.mean(times)
         max_time = max(times)
         
-        assert avg_time < 1.0, f"Среднее время запроса слишком большое: {avg_time:.3f}s"
-        assert max_time < 2.0, f"Максимальное время запроса слишком большое: {max_time:.3f}s"
+        assert avg_time < 1.0, f"Average request time too high: {avg_time:.3f}s"
+        assert max_time < 2.0, f"Maximum request time too high: {max_time:.3f}s"
 
 
 class TestScalabilityLimits:
-    """Тесты пределов масштабируемости"""
+    """Scalability limits tests"""
     
     def test_large_dataset_handling(self, db_session):
-        """Тест работы с большими наборами данных"""
-        # Создаем большую библиотеку
+        """Test working with large datasets"""
+        # Create large library
         library = create_test_library(db_session, num_books=1000)
         
-        # Тестируем различные операции
+        # Test various operations
         start_time = time.perf_counter()
         
-        # Подсчет общего количества
+        # Count total number
         total_books = db_session.query(Book).count()
         
-        # Поиск
+        # Search
         search_results = db_session.query(Book).filter(
             Book.title.ilike("%test%")
         ).limit(100).all()
         
-        # Сложная фильтрация
+        # Complex filtering
         expensive_books = db_session.query(Book).filter(
             Book.price > 500,
             Book.is_available == True
@@ -204,31 +204,31 @@ class TestScalabilityLimits:
         
         end_time = time.perf_counter()
         
-        # Операции должны завершаться в разумное время
-        assert end_time - start_time < 5.0, "Операции с большим набором данных слишком медленные"
+        # Operations should complete in reasonable time
+        assert end_time - start_time < 5.0, "Operations with large dataset too slow"
         assert total_books == 1000
         assert len(search_results) <= 100
         assert len(expensive_books) <= 50
     
     def test_concurrent_writes(self, db_session):
-        """Тест параллельных записей в БД (упрощенный)"""
-        # Настраиваем фабрики для работы с сессией
+        """Test concurrent database writes (simplified)"""
+        # Configure factories to work with session
         UserFactory._meta.sqlalchemy_session = db_session
         AuthorFactory._meta.sqlalchemy_session = db_session
         GenreFactory._meta.sqlalchemy_session = db_session
         BookFactory._meta.sqlalchemy_session = db_session
         
-        # Создаем базовые данные
+        # Create base data
         authors = [AuthorFactory() for _ in range(5)]
         genres = [GenreFactory() for _ in range(3)]
         
         initial_count = db_session.query(Book).count()
         
-        # Создаем книги последовательно (SQLite не любит параллельные записи)
+        # Create books sequentially (SQLite doesn't like parallel writes)
         books_created = 0
         for batch in range(3):
             for i in range(10):
-                # Используем простые данные
+                # Use simple data
                 book = Book(
                     title=f"Concurrent Test Book {batch}-{i}",
                     description=f"Description for concurrent book {batch}-{i}",
@@ -243,15 +243,15 @@ class TestScalabilityLimits:
                 db_session.add(book)
                 books_created += 1
             
-            # Коммитим каждый батч отдельно
+            # Commit each batch separately
             db_session.commit()
         
-        # Проверяем, что все книги созданы
+        # Check that all books were created
         final_count = db_session.query(Book).count()
         assert final_count >= initial_count + books_created
     
     def test_stress_search(self, client, db_session):
-        """Стресс-тест поиска"""
+        """Search stress test"""
         library = create_test_library(db_session, num_books=200)
         
         search_terms = [
@@ -261,8 +261,8 @@ class TestScalabilityLimits:
         
         times = []
         
-        # Выполняем много поисковых запросов
-        for i in range(50):  # Уменьшаем количество для стабильности
+        # Execute many search requests
+        for i in range(50):  # Reduce count for stability
             term = search_terms[i % len(search_terms)]
             
             start_time = time.perf_counter()
@@ -272,20 +272,20 @@ class TestScalabilityLimits:
             times.append(end_time - start_time)
             assert response.status_code == 200
         
-        # Анализируем производительность
+        # Analyze performance
         avg_time = statistics.mean(times)
         max_time = max(times)
         
-        assert avg_time < 0.5, f"Средний время поиска: {avg_time:.3f}s"
-        assert max_time < 2.0, f"Максимальное время поиска: {max_time:.3f}s"
+        assert avg_time < 0.5, f"Average search time: {avg_time:.3f}s"
+        assert max_time < 2.0, f"Maximum search time: {max_time:.3f}s"
 
 
 class TestResourceUsage:
-    """Тесты использования ресурсов"""
+    """Resource usage tests"""
     
     def test_database_connection_pooling(self, db_session):
-        """Тест пулинга соединений с БД"""
-        # Создаем много сессий и проверяем, что они переиспользуются
+        """Test database connection pooling"""
+        # Create many sessions and check that they are reused
         sessions = []
         
         for _ in range(20):
@@ -293,32 +293,32 @@ class TestResourceUsage:
             session = SessionLocal()
             sessions.append(session)
             
-            # Выполняем простой запрос
+            # Execute simple query
             result = session.query(Book).count()
             assert result >= 0
         
-        # Закрываем все сессии
+        # Close all sessions
         for session in sessions:
             session.close()
         
-        # Тест должен пройти без ошибок подключения
+        # Test should pass without connection errors
         assert True
     
     def test_query_optimization(self, db_session):
-        """Тест оптимизации запросов"""
+        """Test query optimization"""
         library = create_test_library(db_session, num_books=100)
         
-        # Тестируем N+1 проблему
+        # Test N+1 problem
         start_time = time.perf_counter()
         
-        # Загружаем книги с авторами и жанрами одним запросом
+        # Load books with authors and genres in one query
         from sqlalchemy.orm import joinedload
         books = db_session.query(Book).options(
             joinedload(Book.authors),
             joinedload(Book.genres)
         ).limit(50).all()
         
-        # Обращаемся к связанным данным
+        # Access related data
         for book in books:
             authors_count = len(book.authors)
             genres_count = len(book.genres)
@@ -327,5 +327,5 @@ class TestResourceUsage:
         
         end_time = time.perf_counter()
         
-        # Оптимизированный запрос должен быть быстрым
-        assert end_time - start_time < 1.0, "Запрос с joinedload слишком медленный"
+        # Optimized query should be fast
+        assert end_time - start_time < 1.0, "Query with joinedload too slow"

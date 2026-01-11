@@ -1,5 +1,5 @@
 """
-Главное приложение FastAPI с логированием и middleware
+Main FastAPI application with logging and middleware
 """
 
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -22,10 +22,10 @@ from .middleware import (
     MetricsMiddleware
 )
 
-# Инициализация логирования
+# Initialize logging
 logger = get_logger("bookstore.main")
 
-# Создание приложения FastAPI с настройками
+# Create FastAPI application with settings
 app = FastAPI(
     title=settings.app_name,
     description=settings.description,
@@ -35,21 +35,21 @@ app = FastAPI(
     debug=settings.debug
 )
 
-# Добавляем middleware в правильном порядке (последний добавленный выполняется первым)
+# Add middleware in correct order (last added executes first)
 metrics_middleware = MetricsMiddleware(app)
 app.add_middleware(MetricsMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
-# Настройка CORS с использованием конфигурации
+# Configure CORS using configuration
 cors_config = settings.get_cors_config()
 app.add_middleware(
     CORSMiddleware,
     **cors_config
 )
 
-# Подключение роутеров
+# Connect routers
 app.include_router(books.router, prefix="/api/v1/books", tags=["books"])
 app.include_router(authors.router, prefix="/api/v1/authors", tags=["authors"])
 app.include_router(genres.router, prefix="/api/v1/genres", tags=["genres"])
@@ -60,7 +60,7 @@ app.include_router(reading_lists.router, prefix="/api/v1/reading-lists", tags=["
 
 @app.on_event("startup")
 async def startup_event():
-    """Инициализация при запуске"""
+    """Initialization on startup"""
     logger.info(f"Starting {settings.app_name} v{settings.app_version}", extra={
         'extra_fields': {
             'environment': settings.environment,
@@ -78,7 +78,7 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Очистка при завершении"""
+    """Cleanup on shutdown"""
     logger.info("Application shutdown", extra={
         'extra_fields': {
             'event_type': 'application_shutdown'
@@ -88,11 +88,11 @@ async def shutdown_event():
 
 @app.get("/")
 async def root():
-    """Корневой эндпоинт с информацией о приложении"""
+    """Root endpoint with application information"""
     logger.debug("Root endpoint accessed")
     
     return {
-        "message": f"Добро пожаловать в {settings.app_name}!",
+        "message": f"Welcome to {settings.app_name}!",
         "version": settings.app_version,
         "environment": settings.environment,
         "docs": "/docs" if not settings.is_production else "disabled",
@@ -102,7 +102,7 @@ async def root():
 
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):
-    """Комплексная проверка здоровья сервиса"""
+    """Comprehensive service health check"""
     from datetime import datetime
     import psutil
     
@@ -115,7 +115,7 @@ async def health_check(db: Session = Depends(get_db)):
         "checks": {}
     }
     
-    # Проверка базы данных
+    # Database check
     db_info = get_database_info()
     health_status["checks"]["database"] = db_info["status"]
     if db_info["status"] == "unhealthy":
@@ -128,7 +128,7 @@ async def health_check(db: Session = Depends(get_db)):
             }
         })
     
-    # Проверка использования памяти
+    # Memory usage check
     try:
         memory_percent = psutil.virtual_memory().percent
         if memory_percent < 90:
@@ -142,7 +142,7 @@ async def health_check(db: Session = Depends(get_db)):
         health_status["checks"]["memory"] = "unknown"
         logger.warning(f"Could not check memory usage: {e}")
     
-    # Проверка дискового пространства
+    # Disk space check
     try:
         disk_usage = psutil.disk_usage('/').percent
         if disk_usage < 90:
@@ -156,7 +156,7 @@ async def health_check(db: Session = Depends(get_db)):
         health_status["checks"]["disk_space"] = "unknown"
         logger.warning(f"Could not check disk usage: {e}")
     
-    # Проверка конфигурации
+    # Configuration check
     config_issues = []
     if not settings.secret_key or len(settings.secret_key) < 16:
         config_issues.append("weak_secret_key")
@@ -176,7 +176,7 @@ async def health_check(db: Session = Depends(get_db)):
                 }
             })
     
-    # Логируем результат health check
+    # Log health check result
     if health_status["status"] == "healthy":
         logger.debug("Health check passed")
     else:
@@ -187,7 +187,7 @@ async def health_check(db: Session = Depends(get_db)):
             }
         })
     
-    # Возвращаем соответствующий HTTP статус
+    # Return appropriate HTTP status
     if health_status["status"] == "unhealthy":
         raise HTTPException(status_code=503, detail=health_status)
     
@@ -196,7 +196,7 @@ async def health_check(db: Session = Depends(get_db)):
 
 @app.get("/metrics")
 async def get_metrics():
-    """Получение метрик приложения"""
+    """Get application metrics"""
     if not settings.metrics_enabled:
         raise HTTPException(status_code=404, detail="Metrics disabled")
     
@@ -213,7 +213,7 @@ async def get_metrics():
 
 @app.get("/info")
 async def app_info():
-    """Информация о приложении и конфигурации"""
+    """Application information and configuration"""
     logger.debug("Info endpoint accessed")
     
     return {
@@ -239,7 +239,7 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    """Аутентификация пользователя"""
+    """User authentication"""
     username = form_data.username
     
     logger.info(f"Authentication attempt for user: {username}", extra={
@@ -280,7 +280,7 @@ async def login(
 
 @app.get("/auth/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    """Получение информации о текущем пользователе"""
+    """Get current user information"""
     logger.debug(f"User profile accessed by: {current_user.username}", extra={
         'extra_fields': {
             'user_id': str(current_user.id),

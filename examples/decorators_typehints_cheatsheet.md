@@ -1,10 +1,10 @@
-# 🎭 Декораторы + Type Hints - Шпаргалка
+# 🎭 Decorators + Type Hints - Cheat Sheet
 
-## 🎯 Что мы изучили (10:30-12:00)
+## 🎯 What we learned (10:30-12:00)
 
-### 1. Собственные декораторы
+### 1. Custom decorators
 
-#### Базовый шаблон
+#### Basic template
 ```python
 import functools
 from typing import TypeVar, Callable, Any
@@ -12,16 +12,16 @@ from typing import TypeVar, Callable, Any
 F = TypeVar('F', bound=Callable[..., Any])
 
 def my_decorator(func: F) -> F:
-    @functools.wraps(func)  # Сохраняет метаданные функции
+    @functools.wraps(func)  # Preserves function metadata
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        # Логика до выполнения
+        # Logic before execution
         result = func(*args, **kwargs)
-        # Логика после выполнения
+        # Logic after execution
         return result
     return wrapper  # type: ignore
 ```
 
-#### Декоратор с параметрами
+#### Decorator with parameters
 ```python
 def retry(max_attempts: int = 3) -> Callable[[F], F]:
     def decorator(func: F) -> F:
@@ -37,7 +37,7 @@ def retry(max_attempts: int = 3) -> Callable[[F], F]:
     return decorator
 ```
 
-#### Универсальный декоратор (sync + async)
+#### Universal decorator (sync + async)
 ```python
 def timer(func: F) -> F:
     if asyncio.iscoroutinefunction(func):
@@ -45,7 +45,7 @@ def timer(func: F) -> F:
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             start = time.perf_counter()
             result = await func(*args, **kwargs)
-            print(f"Время: {time.perf_counter() - start:.4f}s")
+            print(f"Time: {time.perf_counter() - start:.4f}s")
             return result
         return async_wrapper  # type: ignore
     else:
@@ -53,14 +53,14 @@ def timer(func: F) -> F:
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             start = time.perf_counter()
             result = func(*args, **kwargs)
-            print(f"Время: {time.perf_counter() - start:.4f}s")
+            print(f"Time: {time.perf_counter() - start:.4f}s")
             return result
         return sync_wrapper  # type: ignore
 ```
 
-### 2. Продвинутые Type Hints
+### 2. Advanced Type Hints
 
-#### Generic типы
+#### Generic types
 ```python
 from typing import TypeVar, Generic, List
 
@@ -76,12 +76,12 @@ class Stack(Generic[T]):
     def pop(self) -> T:
         return self._items.pop()
 
-# Использование
+# Usage
 int_stack: Stack[int] = Stack()
 str_stack: Stack[str] = Stack()
 ```
 
-#### Protocols (структурная типизация)
+#### Protocols (structural typing)
 ```python
 from typing import Protocol, runtime_checkable
 
@@ -103,27 +103,27 @@ class Circle:
     def area(self) -> float:
         return 3.14 * self.radius ** 2
 
-# Circle автоматически соответствует Drawable!
+# Circle automatically conforms to Drawable!
 def render(shape: Drawable) -> None:
     print(shape.draw())
 
 circle = Circle(5)
-render(circle)  # Работает!
+render(circle)  # Works!
 ```
 
-#### Union и Literal
+#### Union and Literal
 ```python
 from typing import Union, Literal
 
-# Union - один из типов
+# Union - one of the types
 ID = Union[int, str]
 
-# Literal - конкретные значения
+# Literal - specific values
 Status = Literal["pending", "completed", "failed"]
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE"]
 
 def process_request(method: HttpMethod, status: Status) -> None:
-    # IDE знает точные возможные значения!
+    # IDE knows exact possible values!
     pass
 ```
 
@@ -137,7 +137,7 @@ class UserDict(TypedDict):
     email: str
     age: Optional[int]
 
-# Использование как обычный dict, но с проверкой типов
+# Use as regular dict, but with type checking
 user: UserDict = {
     "id": 1,
     "name": "John",
@@ -146,21 +146,21 @@ user: UserDict = {
 }
 ```
 
-#### Callable типы
+#### Callable types
 ```python
 from typing import Callable
 
-# Функция, принимающая int и возвращающая str
+# Function that takes int and returns str
 Processor = Callable[[int], str]
 
 def apply_processor(data: List[int], proc: Processor) -> List[str]:
     return [proc(item) for item in data]
 
-# Использование
+# Usage
 result = apply_processor([1, 2, 3], lambda x: f"Item {x}")
 ```
 
-### 3. Комбинирование декораторов и типов
+### 3. Combining decorators and types
 
 ```python
 from typing import TypeVar, Callable, Any, cast
@@ -169,13 +169,13 @@ import functools
 F = TypeVar('F', bound=Callable[..., Any])
 
 def validate_types(func: F) -> F:
-    """Декоратор для валидации типов во время выполнения"""
+    """Decorator for runtime type validation"""
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        # Получаем аннотации типов
+        # Get type annotations
         hints = get_type_hints(func)
         
-        # Валидируем аргументы
+        # Validate arguments
         sig = inspect.signature(func)
         bound = sig.bind(*args, **kwargs)
         
@@ -183,21 +183,21 @@ def validate_types(func: F) -> F:
             if name in hints:
                 expected_type = hints[name]
                 if not isinstance(value, expected_type):
-                    raise TypeError(f"Аргумент {name} должен быть {expected_type}")
+                    raise TypeError(f"Argument {name} must be {expected_type}")
         
         return func(*args, **kwargs)
     
     return cast(F, wrapper)
 
-# Использование
+# Usage
 @validate_types
 def add_numbers(a: int, b: int) -> int:
     return a + b
 ```
 
-## 🔥 Практические паттерны
+## 🔥 Practical patterns
 
-### 1. Декоратор-класс
+### 1. Decorator class
 ```python
 class RateLimiter:
     def __init__(self, max_calls: int, period: float):
@@ -209,7 +209,7 @@ class RateLimiter:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             now = time.time()
-            # Очищаем старые вызовы
+            # Clean old calls
             self.calls = [call for call in self.calls if now - call < self.period]
             
             if len(self.calls) >= self.max_calls:
@@ -220,8 +220,8 @@ class RateLimiter:
         
         return wrapper  # type: ignore
 
-# Использование
-@RateLimiter(max_calls=5, period=60.0)  # 5 вызовов в минуту
+# Usage
+@RateLimiter(max_calls=5, period=60.0)  # 5 calls per minute
 def api_call() -> str:
     return "API response"
 ```
@@ -244,12 +244,12 @@ class ResourceManager(Generic[T]):
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         print(f"Releasing {type(self.resource).__name__}")
 
-# Использование
+# Usage
 with ResourceManager("database_connection") as db:
     print(f"Using {db}")
 ```
 
-### 3. Async декораторы с типизацией
+### 3. Async decorators with typing
 ```python
 from typing import Awaitable, TypeVar, Callable
 
@@ -270,22 +270,22 @@ def async_retry(max_attempts: int = 3) -> Callable[[AsyncF], AsyncF]:
     return decorator
 ```
 
-## ⚡ Лучшие практики
+## ⚡ Best practices
 
 ### Type Hints
-- ✅ Используй `from __future__ import annotations` для forward references
-- ✅ Предпочитай `list[int]` вместо `List[int]` (Python 3.9+)
-- ✅ Используй `Optional[T]` вместо `Union[T, None]`
-- ✅ Применяй `Protocol` для duck typing
-- ❌ Не злоупотребляй `Any` - лучше `object`
+- ✅ Use `from __future__ import annotations` for forward references
+- ✅ Prefer `list[int]` over `List[int]` (Python 3.9+)
+- ✅ Use `Optional[T]` instead of `Union[T, None]`
+- ✅ Apply `Protocol` for duck typing
+- ❌ Don't overuse `Any` - better use `object`
 
-### Декораторы
-- ✅ Всегда используй `@functools.wraps`
-- ✅ Поддерживай и sync, и async функции
-- ✅ Добавляй методы для управления (cache_clear, stats)
-- ✅ Делай декораторы композируемыми
-- ❌ Не изменяй сигнатуру функции без необходимости
+### Decorators
+- ✅ Always use `@functools.wraps`
+- ✅ Support both sync and async functions
+- ✅ Add management methods (cache_clear, stats)
+- ✅ Make decorators composable
+- ❌ Don't change function signature unnecessarily
 
-## 🎯 Следующий шаг: FastAPI (13:00-15:00)
+## 🎯 Next step: FastAPI (13:00-15:00)
 
-Готов к созданию современного API с автоматической документацией? 🚀
+Ready to create modern API with automatic documentation? 🚀

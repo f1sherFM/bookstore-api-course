@@ -62,36 +62,36 @@
 
 ### Вариант 1: Настройка одной командой (Рекомендуется)
 ```bash
-# Клонируйте и настройте среду разработки
+# Clone and set up development environment
 git clone <repository-url>
 cd bookstore-api
 ./scripts/setup-dev.sh
 
-# Запустите сервер разработки
+# Start development server
 make dev
 ```
 
 ### Вариант 2: Docker разработка
 ```bash
-# Запустите все сервисы с Docker
+# Start all services with Docker
 make docker-dev
 
-# API доступно по адресу: http://localhost:8000
-# Документация доступна по адресу: http://localhost:8000/docs
+# API available at: http://localhost:8000
+# Documentation available at: http://localhost:8000/docs
 ```
 
 ### Вариант 3: Ручная настройка
 ```bash
-# Установите зависимости
+# Install dependencies
 make install
 
-# Настройте окружение
+# Set up environment
 cp .env.example .env
 
-# Запустите тесты
+# Run tests
 make test
 
-# Запустите сервер разработки
+# Start development server
 python run_bookstore.py
 ```
 
@@ -99,43 +99,43 @@ python run_bookstore.py
 
 ### 🔐 Эндпоинты аутентификации
 ```http
-POST /auth/register     # Регистрация нового пользователя
-POST /auth/login        # Вход и получение JWT токена
-POST /auth/refresh      # Обновление JWT токена
+POST /auth/register     # Register new user
+POST /auth/login        # Login and get JWT token
+POST /auth/refresh      # Refresh JWT token
 ```
 
 ### 📚 Управление книгами
 ```http
-GET    /api/v1/books/           # Список книг (с пагинацией и поиском)
-POST   /api/v1/books/           # Создание книги (только админ)
-GET    /api/v1/books/{id}       # Детали книги
-PUT    /api/v1/books/{id}       # Обновление книги (только админ)
-DELETE /api/v1/books/{id}       # Удаление книги (только админ)
-GET    /api/v1/books/{id}/reviews # Получение отзывов о книге
-POST   /api/v1/books/{id}/reviews # Добавление отзыва (аутентифицированные)
+GET    /api/v1/books/           # List books (with pagination and search)
+POST   /api/v1/books/           # Create book (admin only)
+GET    /api/v1/books/{id}       # Book details
+PUT    /api/v1/books/{id}       # Update book (admin only)
+DELETE /api/v1/books/{id}       # Delete book (admin only)
+GET    /api/v1/books/{id}/reviews # Get book reviews
+POST   /api/v1/books/{id}/reviews # Add review (authenticated users)
 ```
 
 ### 👥 Авторы и пользователи
 ```http
-GET    /api/v1/authors/         # Список авторов
-POST   /api/v1/authors/         # Создание автора (только админ)
-GET    /api/v1/authors/{id}     # Детали автора
-GET    /api/v1/users/{id}       # Профиль пользователя
-PUT    /api/v1/users/{id}       # Обновление профиля пользователя
+GET    /api/v1/authors/         # List authors
+POST   /api/v1/authors/         # Create author (admin only)
+GET    /api/v1/authors/{id}     # Author details
+GET    /api/v1/users/{id}       # User profile
+PUT    /api/v1/users/{id}       # Update user profile
 ```
 
 ### 📖 Списки для чтения
 ```http
-GET    /api/v1/reading-lists/           # Получение списков для чтения пользователя
-POST   /api/v1/reading-lists/books/{id} # Добавление книги в список для чтения
-DELETE /api/v1/reading-lists/books/{id} # Удаление из списка для чтения
+GET    /api/v1/reading-lists/           # Get user's reading lists
+POST   /api/v1/reading-lists/books/{id} # Add book to reading list
+DELETE /api/v1/reading-lists/books/{id} # Remove from reading list
 ```
 
 ### 🏥 Системные эндпоинты
 ```http
-GET /health     # Проверка здоровья с подробным статусом
-GET /metrics    # Метрики Prometheus
-GET /info       # Информация о приложении
+GET /health     # Health check with detailed status
+GET /metrics    # Prometheus metrics
+GET /info       # Application information
 ```
 
 **📋 Интерактивная документация:**
@@ -146,26 +146,26 @@ GET /info       # Информация о приложении
 
 ### Локальная разработка
 ```bash
-# Запустите среду разработки
+# Start development environment
 docker-compose up -d
 
-# Просмотр логов
+# View logs
 docker-compose logs -f api
 
-# Остановка сервисов
+# Stop services
 docker-compose down
 ```
 
 ### Production развертывание
 ```bash
-# Настройка production окружения
+# Set up production environment
 cp .env.production .env
-# Отредактируйте .env с вашими production значениями
+# Edit .env with your production values
 
-# Развертывание в production
+# Deploy to production
 make deploy-prod
 
-# Проверка статуса
+# Check status
 docker-compose -f docker-compose.prod.yml ps
 ```
 
@@ -182,13 +182,13 @@ docker-compose -f docker-compose.prod.yml ps
 
 ### Быстрое развертывание
 ```bash
-# Развертывание в Kubernetes кластер
+# Deploy to Kubernetes cluster
 make k8s-deploy
 
-# Проверка статуса развертывания
+# Check deployment status
 make k8s-status
 
-# Обновление развертывания
+# Update deployment
 make k8s-update
 ```
 
@@ -196,7 +196,7 @@ make k8s-update
 ```bash
 cd k8s/
 
-# Развертывание всех компонентов
+# Deploy all components
 kubectl apply -f namespace.yaml
 kubectl apply -f configmap.yaml
 kubectl apply -f secrets.yaml
@@ -206,7 +206,7 @@ kubectl apply -f api-deployment.yaml
 kubectl apply -f monitoring.yaml
 kubectl apply -f ingress.yaml
 
-# Проверка статуса
+# Check status
 kubectl get pods -n bookstore-api
 ```
 
@@ -222,18 +222,18 @@ kubectl get pods -n bookstore-api
 
 ### Доступные команды
 ```bash
-make help              # Показать все доступные команды
-make install           # Установить зависимости
-make dev              # Запустить сервер разработки
-make test             # Запустить все тесты
-make test-unit        # Запустить только unit тесты
-make test-integration # Запустить интеграционные тесты
-make test-property    # Запустить property-based тесты
-make test-performance # Запустить тесты производительности
-make lint             # Запустить проверку кода
-make format           # Отформатировать код
-make security-scan    # Запустить сканирование безопасности
-make load-test        # Запустить нагрузочные тесты
+make help              # Show all available commands
+make install           # Install dependencies
+make dev              # Start development server
+make test             # Run all tests
+make test-unit        # Run only unit tests
+make test-integration # Run integration tests
+make test-property    # Run property-based tests
+make test-performance # Run performance tests
+make lint             # Run code linting
+make format           # Format code
+make security-scan    # Run security scanning
+make load-test        # Run load tests
 ```
 
 ### Фреймворк тестирования
@@ -284,13 +284,13 @@ make load-test        # Запустить нагрузочные тесты
 
 ### Мониторинг здоровья
 ```bash
-# Проверка здоровья приложения
+# Check application health
 make health
 
-# Запуск комплексной проверки здоровья
+# Run comprehensive health check
 ./scripts/production-health-check.sh
 
-# Непрерывный мониторинг
+# Continuous monitoring
 ./scripts/production-health-check.sh monitor
 ```
 
@@ -334,16 +334,23 @@ make health
 bookstore-api/
 ├── 📁 bookstore/              # Основной код приложения
 ├── 📁 tests/                  # Комплексный набор тестов
+├── 📁 config/                 # Конфигурационные файлы (nginx, prometheus и т.д.)
+├── 📁 database/               # SQL файлы и схемы базы данных
+├── 📁 scripts/                # Утилиты и скрипты развертывания
 ├── 📁 .github/workflows/      # CI/CD пайплайны
 ├── 📁 k8s/                    # Kubernetes манифесты
 ├── 📁 grafana/                # Дашборды мониторинга
-├── 📁 scripts/                # Утилиты
+├── 📁 docs/                   # Документация и руководства
+├── 📁 examples/               # Примеры кода и туториалы
 ├── 🐳 Dockerfile              # Образ контейнера
 ├── 🐳 docker-compose.yml      # Локальная разработка
 ├── 🐳 docker-compose.prod.yml # Production стек
 ├── ⚙️ Makefile                # Команды разработки
 ├── 📋 requirements.txt        # Python зависимости
-└── 📚 Документация/           # Руководства и документы
+├── 📚 README.md               # Английская документация
+├── 📚 README_RU.md            # Этот файл
+├── 📄 LICENSE                 # MIT лицензия
+└── 📄 CHANGELOG.md            # История версий
 ```
 
 ## 🚀 Варианты развертывания
@@ -363,31 +370,35 @@ bookstore-api/
 - **Настройка Docker**: [docs/DOCKER_SETUP.md](docs/DOCKER_SETUP.md)
 - **Руководство по CI/CD**: [docs/CI_CD_SETUP.md](docs/CI_CD_SETUP.md)
 - **Руководство по тестированию**: [docs/РУКОВОДСТВО_ПО_ТЕСТИРОВАНИЮ.md](docs/РУКОВОДСТВО_ПО_ТЕСТИРОВАНИЮ.md)
+- **Структура проекта**: [docs/СТРУКТУРА_ПРОЕКТА.md](docs/СТРУКТУРА_ПРОЕКТА.md)
 
 ### Устранение неполадок
 ```bash
-# Проверка логов приложения
+# Check application logs
 make logs
 
-# Проверка статуса здоровья
+# Check health status
 make health
 
-# Запуск диагностики
+# Run diagnostics
 ./scripts/production-health-check.sh
 
-# Просмотр системных метрик
+# View system metrics
 make metrics
 ```
 
 ### Резервное копирование и восстановление
 ```bash
-# Создание резервной копии базы данных
+# Create database backup
 make db-backup
 
-# Восстановление из резервной копии
+# Restore from backup
 make db-restore BACKUP_FILE=/path/to/backup.sql
 
-# Список доступных резервных копий
+# Run backup script
+./scripts/backup-script.sh
+
+# List available backups
 ls -la backups/
 ```
 
@@ -404,19 +415,19 @@ ls -la backups/
 
 ### Рабочий процесс разработки
 ```bash
-# Настройка среды разработки
+# Set up development environment
 ./scripts/setup-dev.sh
 
-# Внесение изменений и тестирование
+# Make changes and test
 make test
 
-# Проверка качества кода
+# Check code quality
 make lint
 
-# Запуск сканирования безопасности
+# Run security scanning
 make security-scan
 
-# Отправка PR
+# Submit PR
 ```
 
 ## 📄 Лицензия

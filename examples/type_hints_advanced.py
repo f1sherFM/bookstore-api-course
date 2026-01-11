@@ -1,18 +1,18 @@
 """
-Продвинутые Type Hints в Python
-Изучаем: Generic, Protocol, Union, Literal, TypedDict, и многое другое
+Advanced Type Hints in Python
+Learning: Generic, Protocol, Union, Literal, TypedDict, and much more
 """
 
 from typing import (
-    # Основные типы
+    # Basic types
     List, Dict, Set, Tuple, Optional, Union, Any, Callable,
-    # Продвинутые типы
+    # Advanced types
     TypeVar, Generic, Protocol, runtime_checkable,
-    # Специальные типы
+    # Special types
     Literal, Final, ClassVar, TypedDict, NamedTuple,
-    # Для работы с функциями
+    # For working with functions
     Awaitable, Coroutine, AsyncGenerator, Generator,
-    # Для валидации
+    # For validation
     get_type_hints, get_origin, get_args
 )
 from typing_extensions import Self, ParamSpec, Concatenate
@@ -24,127 +24,127 @@ from collections.abc import Sequence, Mapping
 import json
 
 
-# 1. GENERIC ТИПЫ
-T = TypeVar('T')  # Любой тип
+# 1. GENERIC TYPES
+T = TypeVar('T')  # Any type
 K = TypeVar('K')  # Key type
 V = TypeVar('V')  # Value type
 P = ParamSpec('P')  # Parameters
 
 
 class Stack(Generic[T]):
-    """Типизированный стек"""
+    """Typed stack"""
     
     def __init__(self) -> None:
         self._items: List[T] = []
     
     def push(self, item: T) -> None:
-        """Добавить элемент"""
+        """Add element"""
         self._items.append(item)
     
     def pop(self) -> T:
-        """Извлечь элемент"""
+        """Extract element"""
         if not self._items:
             raise IndexError("Stack is empty")
         return self._items.pop()
     
     def peek(self) -> Optional[T]:
-        """Посмотреть верхний элемент"""
+        """Look at top element"""
         return self._items[-1] if self._items else None
     
     def is_empty(self) -> bool:
-        """Проверить пустоту"""
+        """Check if empty"""
         return len(self._items) == 0
     
     def size(self) -> int:
-        """Размер стека"""
+        """Stack size"""
         return len(self._items)
     
     def __len__(self) -> int:
         return len(self._items)
     
     def __iter__(self) -> Generator[T, None, None]:
-        """Итерация по стеку (сверху вниз)"""
+        """Iterate over stack (top to bottom)"""
         for item in reversed(self._items):
             yield item
 
 
 class Cache(Generic[K, V]):
-    """Типизированный кэш"""
+    """Typed cache"""
     
     def __init__(self, max_size: int = 100) -> None:
         self._data: Dict[K, V] = {}
         self._max_size = max_size
     
     def get(self, key: K) -> Optional[V]:
-        """Получить значение по ключу"""
+        """Get value by key"""
         return self._data.get(key)
     
     def set(self, key: K, value: V) -> None:
-        """Установить значение"""
+        """Set value"""
         if len(self._data) >= self._max_size and key not in self._data:
-            # Удаляем первый элемент (простая стратегия)
+            # Remove first element (simple strategy)
             first_key = next(iter(self._data))
             del self._data[first_key]
         
         self._data[key] = value
     
     def delete(self, key: K) -> bool:
-        """Удалить ключ"""
+        """Delete key"""
         if key in self._data:
             del self._data[key]
             return True
         return False
     
     def clear(self) -> None:
-        """Очистить кэш"""
+        """Clear cache"""
         self._data.clear()
     
     def keys(self) -> List[K]:
-        """Получить все ключи"""
+        """Get all keys"""
         return list(self._data.keys())
     
     def values(self) -> List[V]:
-        """Получить все значения"""
+        """Get all values"""
         return list(self._data.values())
 
 
-# 2. PROTOCOLS - Структурная типизация
+# 2. PROTOCOLS - Structural typing
 @runtime_checkable
 class Drawable(Protocol):
-    """Протокол для объектов, которые можно рисовать"""
+    """Protocol for drawable objects"""
     
     def draw(self) -> str:
-        """Нарисовать объект"""
+        """Draw object"""
         ...
     
     @property
     def area(self) -> float:
-        """Площадь объекта"""
+        """Object area"""
         ...
 
 
 @runtime_checkable
 class Serializable(Protocol):
-    """Протокол для сериализуемых объектов"""
+    """Protocol for serializable objects"""
     
     def to_dict(self) -> Dict[str, Any]:
-        """Преобразовать в словарь"""
+        """Convert to dictionary"""
         ...
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> Self:
-        """Создать из словаря"""
+        """Create from dictionary"""
         ...
 
 
 class Circle:
-    """Круг - реализует Drawable"""
+    """Circle - implements Drawable"""
     
     def __init__(self, radius: float) -> None:
         self.radius = radius
     
     def draw(self) -> str:
-        return f"Круг радиусом {self.radius}"
+        return f"Circle with radius {self.radius}"
     
     @property
     def area(self) -> float:
@@ -152,14 +152,14 @@ class Circle:
 
 
 class Rectangle:
-    """Прямоугольник - реализует Drawable и Serializable"""
+    """Rectangle - implements Drawable and Serializable"""
     
     def __init__(self, width: float, height: float) -> None:
         self.width = width
         self.height = height
     
     def draw(self) -> str:
-        return f"Прямоугольник {self.width}x{self.height}"
+        return f"Rectangle {self.width}x{self.height}"
     
     @property
     def area(self) -> float:
@@ -173,7 +173,7 @@ class Rectangle:
         return cls(data["width"], data["height"])
 
 
-# 3. UNION И LITERAL ТИПЫ
+# 3. UNION AND LITERAL TYPES
 class Status(Enum):
     PENDING = "pending"
     PROCESSING = "processing"
@@ -181,18 +181,18 @@ class Status(Enum):
     FAILED = "failed"
 
 
-# Literal для ограничения значений
+# Literal for value constraints
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
 
-# Union для альтернативных типов
-ID = Union[int, str]  # ID может быть числом или строкой
+# Union for alternative types
+ID = Union[int, str]  # ID can be number or string
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 
 
-# 4. TYPEDDICT ДЛЯ СТРУКТУРИРОВАННЫХ СЛОВАРЕЙ
+# 4. TYPEDDICT FOR STRUCTURED DICTIONARIES
 class UserDict(TypedDict):
-    """Типизированный словарь пользователя"""
+    """Typed user dictionary"""
     id: int
     name: str
     email: str
@@ -200,41 +200,41 @@ class UserDict(TypedDict):
     is_active: bool
 
 
-class ConfigDict(TypedDict, total=False):  # total=False - все поля опциональные
-    """Конфигурация (все поля опциональные)"""
+class ConfigDict(TypedDict, total=False):  # total=False - all fields optional
+    """Configuration (all fields optional)"""
     host: str
     port: int
     debug: bool
     timeout: float
 
 
-# 5. NAMEDTUPLE С ТИПАМИ
+# 5. NAMEDTUPLE WITH TYPES
 class Point(NamedTuple):
-    """Точка в 2D пространстве"""
+    """Point in 2D space"""
     x: float
     y: float
     
     def distance_to(self, other: 'Point') -> float:
-        """Расстояние до другой точки"""
+        """Distance to another point"""
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
 
 
 class Color(NamedTuple):
-    """RGB цвет"""
+    """RGB color"""
     red: int
     green: int
     blue: int
     alpha: float = 1.0
     
     def to_hex(self) -> str:
-        """Преобразовать в HEX"""
+        """Convert to HEX"""
         return f"#{self.red:02x}{self.green:02x}{self.blue:02x}"
 
 
-# 6. DATACLASS С ПРОДВИНУТОЙ ТИПИЗАЦИЕЙ
-@dataclass(frozen=True)  # Неизменяемый dataclass
+# 6. DATACLASS WITH ADVANCED TYPING
+@dataclass(frozen=True)  # Immutable dataclass
 class Product:
-    """Продукт в магазине"""
+    """Product in store"""
     id: int
     name: str
     price: float
@@ -242,20 +242,20 @@ class Product:
     tags: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     
-    # ClassVar - переменная класса, не экземпляра
+    # ClassVar - class variable, not instance
     _next_id: ClassVar[int] = 1
     
     def __post_init__(self) -> None:
-        """Валидация после создания"""
+        """Validation after creation"""
         if self.price < 0:
-            raise ValueError("Цена не может быть отрицательной")
+            raise ValueError("Price cannot be negative")
         if not self.name.strip():
-            raise ValueError("Название не может быть пустым")
+            raise ValueError("Name cannot be empty")
 
 
 @dataclass
 class Order:
-    """Заказ"""
+    """Order"""
     id: int
     user_id: int
     products: List[Product]
@@ -264,15 +264,15 @@ class Order:
     
     @property
     def total_price(self) -> float:
-        """Общая стоимость заказа"""
+        """Total order price"""
         return sum(product.price for product in self.products)
     
     def add_product(self, product: Product) -> None:
-        """Добавить продукт"""
+        """Add product"""
         self.products.append(product)
     
     def remove_product(self, product_id: int) -> bool:
-        """Удалить продукт по ID"""
+        """Remove product by ID"""
         for i, product in enumerate(self.products):
             if product.id == product_id:
                 del self.products[i]
@@ -280,22 +280,22 @@ class Order:
         return False
 
 
-# 7. ФУНКЦИИ С ПРОДВИНУТОЙ ТИПИЗАЦИЕЙ
+# 7. FUNCTIONS WITH ADVANCED TYPING
 def process_items(
-    items: Sequence[T],  # Sequence - более общий тип чем List
-    processor: Callable[[T], V],  # Функция обработки
-    filter_func: Optional[Callable[[T], bool]] = None  # Опциональный фильтр
+    items: Sequence[T],  # Sequence - more general type than List
+    processor: Callable[[T], V],  # Processing function
+    filter_func: Optional[Callable[[T], bool]] = None  # Optional filter
 ) -> List[V]:
     """
-    Обработать элементы с помощью функции
+    Process items with function
     
     Args:
-        items: Последовательность элементов
-        processor: Функция обработки каждого элемента
-        filter_func: Опциональная функция фильтрации
+        items: Sequence of items
+        processor: Function to process each item
+        filter_func: Optional filtering function
     
     Returns:
-        Список обработанных элементов
+        List of processed items
     """
     filtered_items = items
     if filter_func:
@@ -305,13 +305,13 @@ def process_items(
 
 
 def create_cache_factory() -> Callable[[], Cache[str, Any]]:
-    """Фабрика для создания кэшей"""
+    """Factory for creating caches"""
     def factory() -> Cache[str, Any]:
         return Cache[str, Any](max_size=50)
     return factory
 
 
-# Overload для функций с разными сигнатурами
+# Overload for functions with different signatures
 from typing import overload
 
 @overload
@@ -323,8 +323,8 @@ def get_user_info(user_id: str) -> UserDict:
     ...
 
 def get_user_info(user_id: ID) -> UserDict:
-    """Получить информацию о пользователе по ID"""
-    # В реальности здесь был бы запрос к БД
+    """Get user information by ID"""
+    # In reality, this would be a DB query
     return UserDict(
         id=int(user_id) if isinstance(user_id, str) else user_id,
         name="Test User",
@@ -334,24 +334,24 @@ def get_user_info(user_id: ID) -> UserDict:
     )
 
 
-# 8. АСИНХРОННЫЕ ТИПЫ
+# 8. ASYNC TYPES
 async def fetch_data(url: str) -> Dict[str, Any]:
-    """Асинхронное получение данных"""
-    # Имитация HTTP запроса
+    """Async data fetching"""
+    # Simulate HTTP request
     await asyncio.sleep(0.1)
     return {"url": url, "status": "success"}
 
 
 async def process_urls(urls: List[str]) -> AsyncGenerator[Dict[str, Any], None]:
-    """Асинхронный генератор для обработки URL"""
+    """Async generator for processing URLs"""
     for url in urls:
         data = await fetch_data(url)
         yield data
 
 
-# 9. ФУНКЦИИ ДЛЯ РАБОТЫ С ТИПАМИ
+# 9. FUNCTIONS FOR WORKING WITH TYPES
 def analyze_type(obj: Any) -> Dict[str, Any]:
-    """Анализ типа объекта"""
+    """Analyze object type"""
     obj_type = type(obj)
     
     return {
@@ -365,29 +365,29 @@ def analyze_type(obj: Any) -> Dict[str, Any]:
 
 
 def validate_protocol(obj: Any, protocol: type) -> bool:
-    """Проверить соответствие объекта протоколу"""
+    """Check if object conforms to protocol"""
     return isinstance(obj, protocol)
 
 
-# ДЕМОНСТРАЦИЯ
+# DEMONSTRATION
 def demo_type_hints() -> None:
-    """Демонстрация продвинутых type hints"""
-    print("🔍 ДЕМОНСТРАЦИЯ ПРОДВИНУТЫХ TYPE HINTS\n")
+    """Advanced type hints demonstration"""
+    print("🔍 ADVANCED TYPE HINTS DEMONSTRATION\n")
     
-    # 1. Generic типы
-    print("1️⃣ Generic типы:")
+    # 1. Generic types
+    print("1️⃣ Generic types:")
     int_stack: Stack[int] = Stack()
     int_stack.push(1)
     int_stack.push(2)
     int_stack.push(3)
     
-    print(f"Стек: {list(int_stack)}")
-    print(f"Верхний элемент: {int_stack.peek()}")
+    print(f"Stack: {list(int_stack)}")
+    print(f"Top element: {int_stack.peek()}")
     
     str_cache: Cache[str, str] = Cache()
     str_cache.set("key1", "value1")
     str_cache.set("key2", "value2")
-    print(f"Кэш: {str_cache.get('key1')}")
+    print(f"Cache: {str_cache.get('key1')}")
     print()
     
     # 2. Protocols
@@ -397,7 +397,7 @@ def demo_type_hints() -> None:
     
     shapes: List[Drawable] = [circle, rectangle]
     for shape in shapes:
-        print(f"{shape.draw()}, площадь: {shape.area}")
+        print(f"{shape.draw()}, area: {shape.area}")
     
     print(f"Circle is Drawable: {validate_protocol(circle, Drawable)}")
     print(f"Rectangle is Serializable: {validate_protocol(rectangle, Serializable)}")
@@ -407,59 +407,59 @@ def demo_type_hints() -> None:
     print("3️⃣ TypedDict:")
     user: UserDict = {
         "id": 1,
-        "name": "Иван Петров",
+        "name": "Ivan Petrov",
         "email": "ivan@example.com",
         "age": 30,
         "is_active": True
     }
-    print(f"Пользователь: {user['name']}, возраст: {user['age']}")
+    print(f"User: {user['name']}, age: {user['age']}")
     
     config: ConfigDict = {"host": "localhost", "port": 8000}
-    print(f"Конфигурация: {config}")
+    print(f"Configuration: {config}")
     print()
     
-    # 4. NamedTuple и dataclass
-    print("4️⃣ NamedTuple и dataclass:")
+    # 4. NamedTuple and dataclass
+    print("4️⃣ NamedTuple and dataclass:")
     point1 = Point(0.0, 0.0)
     point2 = Point(3.0, 4.0)
-    print(f"Расстояние между точками: {point1.distance_to(point2)}")
+    print(f"Distance between points: {point1.distance_to(point2)}")
     
     color = Color(255, 128, 0)
-    print(f"Цвет: {color.to_hex()}")
+    print(f"Color: {color.to_hex()}")
     
-    product = Product(1, "Ноутбук", 50000.0, "Электроника", ["компьютер", "работа"])
+    product = Product(1, "Laptop", 50000.0, "Electronics", ["computer", "work"])
     order = Order(1, 123, [product])
-    print(f"Заказ на сумму: {order.total_price}")
+    print(f"Order total: {order.total_price}")
     print()
     
-    # 5. Функции с типизацией
-    print("5️⃣ Функции с типизацией:")
+    # 5. Functions with typing
+    print("5️⃣ Functions with typing:")
     numbers = [1, 2, 3, 4, 5]
     squared = process_items(
         numbers,
         lambda x: x ** 2,
-        lambda x: x % 2 == 0  # Только четные
+        lambda x: x % 2 == 0  # Only even numbers
     )
-    print(f"Квадраты четных чисел: {squared}")
+    print(f"Squares of even numbers: {squared}")
     
     user_info = get_user_info(123)
-    print(f"Информация о пользователе: {user_info['name']}")
+    print(f"User info: {user_info['name']}")
     print()
     
-    # 6. Анализ типов
-    print("6️⃣ Анализ типов:")
+    # 6. Type analysis
+    print("6️⃣ Type analysis:")
     cache_analysis = analyze_type(str_cache)
-    print(f"Анализ кэша: {cache_analysis}")
+    print(f"Cache analysis: {cache_analysis}")
 
 
 async def demo_async_types() -> None:
-    """Демонстрация асинхронных типов"""
-    print("7️⃣ Асинхронные типы:")
+    """Async types demonstration"""
+    print("7️⃣ Async types:")
     
     urls = ["http://example.com", "http://google.com", "http://github.com"]
     
     async for data in process_urls(urls):
-        print(f"Обработан URL: {data}")
+        print(f"Processed URL: {data}")
 
 
 if __name__ == "__main__":

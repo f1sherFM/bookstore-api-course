@@ -1,5 +1,5 @@
 """
-Конфигурация базы данных с использованием новой системы настроек
+Database configuration using new settings system
 """
 
 from sqlalchemy import create_engine
@@ -10,10 +10,10 @@ from .config import settings
 
 
 def create_database_engine():
-    """Создание движка базы данных с конфигурацией"""
+    """Create database engine with configuration"""
     db_config = settings.get_database_config()
     
-    # Настройки для SQLite
+    # SQLite settings
     if db_config["url"].startswith("sqlite"):
         engine = create_engine(
             db_config["url"],
@@ -22,7 +22,7 @@ def create_database_engine():
             echo=db_config["echo"]
         )
     else:
-        # Настройки для PostgreSQL и других БД
+        # PostgreSQL and other DB settings
         engine = create_engine(
             db_config["url"],
             echo=db_config["echo"],
@@ -35,18 +35,18 @@ def create_database_engine():
     return engine
 
 
-# Создание движка и сессии
+# Create engine and session
 engine = create_database_engine()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def create_tables():
-    """Создание всех таблиц"""
+    """Create all tables"""
     Base.metadata.create_all(bind=engine)
 
 
 def get_db():
-    """Dependency для получения сессии БД"""
+    """Dependency for getting DB session"""
     db = SessionLocal()
     try:
         yield db
@@ -55,115 +55,115 @@ def get_db():
 
 
 def init_db():
-    """Инициализация БД с тестовыми данными"""
+    """Initialize DB with test data"""
     from .models import User, Author, Genre, Book
     from .auth import get_password_hash
     
     create_tables()
     
-    # Пропускаем создание тестовых данных в production
+    # Skip test data creation in production
     if settings.is_production:
         print("Production environment - skipping test data creation")
         return
     
     db = SessionLocal()
     try:
-        # Проверяем, есть ли уже данные
+        # Check if data already exists
         if db.query(User).first():
-            print("База данных уже инициализирована")
+            print("Database already initialized")
             return
         
-        print("Создание тестовых данных...")
+        print("Creating test data...")
         
-        # Создаем суперпользователя
+        # Create superuser
         admin_user = User(
             email="admin@bookstore.com",
             username="admin",
-            full_name="Администратор",
+            full_name="Administrator",
             hashed_password=get_password_hash("admin123"),
             is_active=True,
             is_superuser=True
         )
         db.add(admin_user)
         
-        # Создаем обычного пользователя только в development
+        # Create regular user only in development
         if settings.is_development:
             regular_user = User(
                 email="user@example.com",
                 username="testuser",
-                full_name="Тестовый пользователь",
+                full_name="Test User",
                 hashed_password=get_password_hash("password123"),
                 is_active=True,
                 is_superuser=False
             )
             db.add(regular_user)
         
-        # Создаем авторов
+        # Create authors
         authors = [
             Author(
-                name="Лев Толстой",
-                biography="Русский писатель, философ",
-                nationality="Россия"
+                name="Leo Tolstoy",
+                biography="Russian writer, philosopher",
+                nationality="Russia"
             ),
             Author(
-                name="Федор Достоевский", 
-                biography="Русский писатель, мыслитель",
-                nationality="Россия"
+                name="Fyodor Dostoevsky", 
+                biography="Russian writer, thinker",
+                nationality="Russia"
             ),
             Author(
-                name="Александр Пушкин",
-                biography="Русский поэт, драматург и прозаик",
-                nationality="Россия"
+                name="Alexander Pushkin",
+                biography="Russian poet, playwright and prose writer",
+                nationality="Russia"
             )
         ]
         
         for author in authors:
             db.add(author)
         
-        # Создаем жанры
+        # Create genres
         genres = [
-            Genre(name="Классическая литература", description="Произведения классиков"),
-            Genre(name="Роман", description="Эпический жанр"),
-            Genre(name="Поэзия", description="Стихотворные произведения"),
-            Genre(name="Драма", description="Драматические произведения"),
-            Genre(name="Философия", description="Философские произведения")
+            Genre(name="Classical Literature", description="Works by classical authors"),
+            Genre(name="Novel", description="Epic genre"),
+            Genre(name="Poetry", description="Poetic works"),
+            Genre(name="Drama", description="Dramatic works"),
+            Genre(name="Philosophy", description="Philosophical works")
         ]
         
         for genre in genres:
             db.add(genre)
         
-        # Сохраняем изменения, чтобы получить ID
+        # Save changes to get IDs
         db.commit()
         
-        # Создаем книги только в development
+        # Create books only in development
         if settings.is_development:
             books_data = [
                 {
-                    "title": "Война и мир",
-                    "description": "Роман-эпопея о русском обществе в эпоху наполеоновских войн",
+                    "title": "War and Peace",
+                    "description": "Epic novel about Russian society during the Napoleonic Wars",
                     "page_count": 1300,
                     "language": "ru",
                     "price": 599.99,
-                    "author_names": ["Лев Толстой"],
-                    "genre_names": ["Классическая литература", "Роман"]
+                    "author_names": ["Leo Tolstoy"],
+                    "genre_names": ["Classical Literature", "Novel"]
                 },
                 {
-                    "title": "Преступление и наказание",
-                    "description": "Психологический роман о студенте Раскольникове",
+                    "title": "Crime and Punishment",
+                    "description": "Psychological novel about student Raskolnikov",
                     "page_count": 671,
                     "language": "ru", 
                     "price": 449.99,
-                    "author_names": ["Федор Достоевский"],
-                    "genre_names": ["Классическая литература", "Роман"]
+                    "author_names": ["Fyodor Dostoevsky"],
+                    "genre_names": ["Classical Literature", "Novel"]
                 },
                 {
-                    "title": "Евгений Онегин",
-                    "description": "Роман в стихах о дворянском обществе",
+                    "title": "Eugene Onegin",
+                    "description": "Novel in verse about noble society",
                     "page_count": 384,
                     "language": "ru",
                     "price": 299.99,
-                    "author_names": ["Александр Пушкин"],
-                    "genre_names": ["Классическая литература", "Поэзия"]
+                    "author_names": ["Alexander Pushkin"],
+                    "genre_names": ["Classical Literature", "Poetry"]
                 }
             ]
             
@@ -177,13 +177,13 @@ def init_db():
                     is_available=True
                 )
                 
-                # Добавляем авторов
+                # Add authors
                 for author_name in book_data["author_names"]:
                     author = db.query(Author).filter(Author.name == author_name).first()
                     if author:
                         book.authors.append(author)
                 
-                # Добавляем жанры
+                # Add genres
                 for genre_name in book_data["genre_names"]:
                     genre = db.query(Genre).filter(Genre.name == genre_name).first()
                     if genre:
@@ -192,17 +192,17 @@ def init_db():
                 db.add(book)
         
         db.commit()
-        print("Тестовые данные созданы успешно!")
+        print("Test data created successfully!")
         
     except Exception as e:
-        print(f"Ошибка при создании тестовых данных: {e}")
+        print(f"Error creating test data: {e}")
         db.rollback()
     finally:
         db.close()
 
 
 def get_database_info():
-    """Получение информации о базе данных для health check"""
+    """Get database information for health check"""
     try:
         db = SessionLocal()
         result = db.execute("SELECT 1").scalar()

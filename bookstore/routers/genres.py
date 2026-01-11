@@ -1,5 +1,5 @@
 """
-Роутер для работы с жанрами
+Router for working with genres
 """
 
 from typing import List
@@ -16,14 +16,14 @@ router = APIRouter()
 
 @router.get("/", response_model=List[GenreSchema])
 async def get_genres(db: Session = Depends(get_db)):
-    """Получение списка жанров"""
+    """Get list of genres"""
     genres = db.query(Genre).all()
     return genres
 
 
 @router.get("/{genre_id}", response_model=GenreSchema)
 async def get_genre(genre_id: int, db: Session = Depends(get_db)):
-    """Получение жанра по ID"""
+    """Get genre by ID"""
     genre = db.query(Genre).filter(Genre.id == genre_id).first()
     if not genre:
         raise HTTPException(
@@ -39,8 +39,8 @@ async def create_genre(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """Создание жанра"""
-    # Проверяем уникальность названия
+    """Create genre"""
+    # Check name uniqueness
     existing_genre = db.query(Genre).filter(Genre.name == genre_data.name).first()
     if existing_genre:
         raise HTTPException(
@@ -62,7 +62,7 @@ async def update_genre(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """Обновление жанра"""
+    """Update genre"""
     genre = db.query(Genre).filter(Genre.id == genre_id).first()
     if not genre:
         raise HTTPException(
@@ -85,7 +85,7 @@ async def delete_genre(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_superuser)
 ):
-    """Удаление жанра"""
+    """Delete genre"""
     genre = db.query(Genre).filter(Genre.id == genre_id).first()
     if not genre:
         raise HTTPException(

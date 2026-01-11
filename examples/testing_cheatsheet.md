@@ -1,37 +1,37 @@
-# 🧪 Тестирование Python - Мастер-класс
+# 🧪 Python Testing - Master Class
 
-## 🎯 Что мы создали
+## 🎯 What we created
 
-### 📁 Структура тестов
+### 📁 Test Structure
 
 ```
 tests/
 ├── __init__.py
-├── conftest.py              # Конфигурация pytest и фикстуры
-├── test_unit_basic.py       # Unit тесты
-├── test_api_integration.py  # Интеграционные тесты API
-├── test_property_based.py   # Property-based тесты (Hypothesis)
-├── test_performance.py      # Тесты производительности
-└── factories.py             # Фабрики для тестовых данных
+├── conftest.py              # Pytest configuration and fixtures
+├── test_unit_basic.py       # Unit tests
+├── test_api_integration.py  # API integration tests
+├── test_property_based.py   # Property-based tests (Hypothesis)
+├── test_performance.py      # Performance tests
+└── factories.py             # Test data factories
 ```
 
-### 🔧 Инструменты тестирования
+### 🔧 Testing Tools
 
-**Основные библиотеки:**
-- `pytest` - основной фреймворк тестирования
-- `pytest-asyncio` - поддержка асинхронных тестов
-- `pytest-cov` - покрытие кода
-- `httpx` - HTTP клиент для тестирования API
-- `hypothesis` - property-based тестирование
-- `factory-boy` - фабрики для создания тестовых данных
-- `faker` - генерация фейковых данных
+**Main libraries:**
+- `pytest` - main testing framework
+- `pytest-asyncio` - async test support
+- `pytest-cov` - code coverage
+- `httpx` - HTTP client for API testing
+- `hypothesis` - property-based testing
+- `factory-boy` - factories for test data creation
+- `faker` - fake data generation
 
-## 🧪 Типы тестов
+## 🧪 Test Types
 
-### 1. Unit тесты
+### 1. Unit tests
 ```python
 def test_password_hashing():
-    """Тест хэширования пароля"""
+    """Password hashing test"""
     password = "testpassword123"
     hashed = get_password_hash(password)
     
@@ -39,16 +39,16 @@ def test_password_hashing():
     assert verify_password(password, hashed)
 ```
 
-**Что тестируем:**
-- Отдельные функции и методы
-- Бизнес-логику
-- Валидацию данных
-- Модели данных
+**What we test:**
+- Individual functions and methods
+- Business logic
+- Data validation
+- Data models
 
-### 2. Интеграционные тесты
+### 2. Integration tests
 ```python
 def test_create_user(client):
-    """Тест создания пользователя через API"""
+    """User creation test via API"""
     user_data = {
         "email": "test@example.com",
         "username": "testuser",
@@ -61,33 +61,33 @@ def test_create_user(client):
     assert response.json()["email"] == user_data["email"]
 ```
 
-**Что тестируем:**
-- API эндпоинты
-- Взаимодействие компонентов
-- Аутентификацию и авторизацию
-- CRUD операции
+**What we test:**
+- API endpoints
+- Component interactions
+- Authentication and authorization
+- CRUD operations
 
-### 3. Property-based тесты
+### 3. Property-based tests
 ```python
 @given(password=valid_password())
 def test_password_hash_roundtrip(password):
-    """Свойство: хэш пароля должен верифицироваться обратно"""
+    """Property: password hash should verify back"""
     hashed = get_password_hash(password)
     
     assert hashed != password
     assert verify_password(password, hashed)
 ```
 
-**Что тестируем:**
-- Универсальные свойства
-- Инварианты системы
-- Граничные случаи
-- Математические свойства
+**What we test:**
+- Universal properties
+- System invariants
+- Edge cases
+- Mathematical properties
 
-### 4. Тесты производительности
+### 4. Performance tests
 ```python
 def test_search_performance(db_session):
-    """Тест производительности поиска"""
+    """Search performance test"""
     create_test_library(db_session, num_books=200)
     
     start_time = time.perf_counter()
@@ -99,13 +99,13 @@ def test_search_performance(db_session):
     assert end_time - start_time < 0.05
 ```
 
-**Что тестируем:**
-- Время выполнения запросов
-- Использование памяти
-- Параллельные запросы
-- Масштабируемость
+**What we test:**
+- Query execution time
+- Memory usage
+- Concurrent requests
+- Scalability
 
-## 🏭 Фабрики тестовых данных
+## 🏭 Test Data Factories
 
 ### Factory Boy
 ```python
@@ -119,13 +119,13 @@ class UserFactory(SQLAlchemyModelFactory):
     full_name = factory.LazyAttribute(lambda obj: fake.name())
 ```
 
-**Преимущества:**
-- Автоматическая генерация данных
-- Связи между объектами
-- Различные стратегии создания
-- Повторяемость тестов
+**Advantages:**
+- Automatic data generation
+- Object relationships
+- Different creation strategies
+- Test repeatability
 
-### Faker для реалистичных данных
+### Faker for realistic data
 ```python
 fake = Faker(['ru_RU', 'en_US'])
 
@@ -135,13 +135,13 @@ text = fake.text(max_nb_chars=500)
 date = fake.date_between(start_date='-1y', end_date='today')
 ```
 
-## 🔧 Фикстуры pytest
+## 🔧 Pytest Fixtures
 
-### Базовые фикстуры
+### Basic fixtures
 ```python
 @pytest.fixture
 def db_session():
-    """Тестовая сессия БД"""
+    """Test DB session"""
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
@@ -152,16 +152,16 @@ def db_session():
 
 @pytest.fixture
 def client(db_session):
-    """Тестовый HTTP клиент"""
+    """Test HTTP client"""
     with TestClient(app) as test_client:
         yield test_client
 ```
 
-### Фикстуры с данными
+### Data fixtures
 ```python
 @pytest.fixture
 def test_user(db_session):
-    """Создание тестового пользователя"""
+    """Create test user"""
     user = User(
         email="test@example.com",
         username="testuser",
@@ -172,9 +172,9 @@ def test_user(db_session):
     return user
 ```
 
-## 📊 Покрытие кода
+## 📊 Code Coverage
 
-### Конфигурация
+### Configuration
 ```ini
 # pytest.ini
 [tool:pytest]
@@ -185,42 +185,42 @@ addopts =
     --cov-fail-under=80
 ```
 
-### Команды
+### Commands
 ```bash
-# Запуск с покрытием
+# Run with coverage
 pytest --cov=bookstore
 
-# HTML отчет
+# HTML report
 pytest --cov=bookstore --cov-report=html
 
-# Только непокрытые строки
+# Only uncovered lines
 pytest --cov=bookstore --cov-report=term-missing
 ```
 
-## 🚀 Запуск тестов
+## 🚀 Running Tests
 
-### Основные команды
+### Basic commands
 ```bash
-# Все тесты
+# All tests
 pytest
 
-# Конкретный файл
+# Specific file
 pytest tests/test_unit_basic.py
 
-# Конкретный тест
+# Specific test
 pytest tests/test_unit_basic.py::TestPasswordHashing::test_password_hashing
 
-# С подробным выводом
+# With verbose output
 pytest -v
 
-# Параллельно
+# In parallel
 pytest -n auto
 
-# Только быстрые тесты
+# Only fast tests
 pytest -m "not slow"
 ```
 
-### Маркеры
+### Markers
 ```python
 @pytest.mark.unit
 def test_unit_function():
@@ -235,64 +235,64 @@ def test_performance():
     pass
 ```
 
-## 🎯 Лучшие практики
+## 🎯 Best Practices
 
-### Структура тестов
-- ✅ **AAA паттерн**: Arrange, Act, Assert
-- ✅ **Один тест = одна проверка**
-- ✅ **Описательные имена тестов**
-- ✅ **Изоляция тестов** (каждый тест независим)
+### Test structure
+- ✅ **AAA pattern**: Arrange, Act, Assert
+- ✅ **One test = one check**
+- ✅ **Descriptive test names**
+- ✅ **Test isolation** (each test independent)
 
-### Фикстуры
-- ✅ **Минимальные фикстуры** (только необходимые данные)
-- ✅ **Правильные scope** (function, class, module, session)
-- ✅ **Cleanup** (очистка после тестов)
+### Fixtures
+- ✅ **Minimal fixtures** (only necessary data)
+- ✅ **Proper scope** (function, class, module, session)
+- ✅ **Cleanup** (cleanup after tests)
 
-### Данные
-- ✅ **Фабрики вместо хардкода**
-- ✅ **Реалистичные данные** (Faker)
-- ✅ **Граничные случаи**
+### Data
+- ✅ **Factories instead of hardcode**
+- ✅ **Realistic data** (Faker)
+- ✅ **Edge cases**
 
-### Property-based тесты
-- ✅ **Универсальные свойства**
-- ✅ **Инварианты системы**
-- ✅ **Ограничения на входные данные** (assume)
+### Property-based tests
+- ✅ **Universal properties**
+- ✅ **System invariants**
+- ✅ **Input constraints** (assume)
 
-## 📈 Метрики качества
+## 📈 Quality Metrics
 
-### Покрытие кода
-- **80%+** - хорошее покрытие
-- **90%+** - отличное покрытие
-- **100%** - не всегда нужно
+### Code coverage
+- **80%+** - good coverage
+- **90%+** - excellent coverage
+- **100%** - not always necessary
 
-### Типы покрытия
-- **Line coverage** - покрытие строк
-- **Branch coverage** - покрытие ветвлений
-- **Function coverage** - покрытие функций
+### Coverage types
+- **Line coverage** - line coverage
+- **Branch coverage** - branch coverage
+- **Function coverage** - function coverage
 
-### Производительность
-- **Unit тесты**: < 1ms каждый
-- **Integration тесты**: < 100ms каждый
-- **E2E тесты**: < 1s каждый
+### Performance
+- **Unit tests**: < 1ms each
+- **Integration tests**: < 100ms each
+- **E2E tests**: < 1s each
 
-## 🔍 Отладка тестов
+## 🔍 Test Debugging
 
-### Полезные опции
+### Useful options
 ```bash
-# Остановка на первой ошибке
+# Stop on first error
 pytest -x
 
-# Подробный traceback
+# Detailed traceback
 pytest --tb=long
 
-# Показать print statements
+# Show print statements
 pytest -s
 
-# Запуск конкретного теста в отладчике
+# Run specific test in debugger
 pytest --pdb tests/test_unit_basic.py::test_function
 ```
 
-### Логирование в тестах
+### Logging in tests
 ```python
 import logging
 
@@ -303,21 +303,21 @@ def test_with_logging(caplog):
     assert "Expected message" in caplog.text
 ```
 
-## 🎉 Результат
+## 🎉 Result
 
-**За 4 часа мы создали:**
-- ✅ Комплексную систему тестирования
-- ✅ Unit, интеграционные, property-based тесты
-- ✅ Фабрики для тестовых данных
-- ✅ Тесты производительности
-- ✅ Конфигурацию pytest с покрытием
-- ✅ Makefile для автоматизации
+**In 4 hours we created:**
+- ✅ Comprehensive testing system
+- ✅ Unit, integration, property-based tests
+- ✅ Test data factories
+- ✅ Performance tests
+- ✅ Pytest configuration with coverage
+- ✅ Makefile for automation
 
-**Теперь ты знаешь как:**
-- Писать качественные тесты
-- Использовать современные инструменты
-- Измерять покрытие кода
-- Тестировать производительность
-- Автоматизировать тестирование
+**Now you know how to:**
+- Write quality tests
+- Use modern tools
+- Measure code coverage
+- Test performance
+- Automate testing
 
-**Следующий шаг: DevOps + Docker + CI/CD!** 🚀
+**Next step: DevOps + Docker + CI/CD!** 🚀
