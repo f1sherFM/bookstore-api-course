@@ -137,14 +137,14 @@ Whether you're a beginner or experienced developer, this roadmap will guide you 
    - Register a new user: `POST /auth/register`
    - Login to get JWT token: `POST /auth/login`
    - Use token in headers: `Authorization: Bearer <token>`
-   - 📖 Read: [Authentication Guide](docs/QUICK_START.md#authentication)
+   - 📖 Read: [Authentication Guide](QUICK_START.md#authentication)
 
 2. **Core Operations** (15 min)
    - List books with pagination: `GET /api/v1/books/?page=1&size=10`
    - Search books: `GET /api/v1/books/?q=python`
    - Get book details: `GET /api/v1/books/{id}`
    - Add to reading list: `POST /api/v1/reading-lists/books/{id}`
-   - 📖 Read: [API Examples](examples/fastapi_cheatsheet.md)
+   - 📖 Read: [API Examples](development/examples/fastapi_cheatsheet.md)
 
 3. **Advanced Features** (5 min)
    - Rate limiting and error handling
@@ -168,27 +168,27 @@ Whether you're a beginner or experienced developer, this roadmap will guide you 
    - Understand FastAPI app setup in `main.py`
    - Review models in `models.py` and schemas in `schemas.py`
    - Check routing in `routers/` directory
-   - 📖 Read: [Project Structure](docs/PROJECT_STRUCTURE_DETAILED.md)
+   - 📖 Read: [Project Structure](PROJECT_STRUCTURE.md)
 
 2. **Development Workflow** (45 min)
    - Setup development environment: `make install`
    - Run tests: `make test`
    - Code formatting: `make format`
    - Add a new endpoint (try adding a genre endpoint)
-   - 📖 Read: [Development Guide](docs/QUICK_START.md#development)
+   - 📖 Read: [Development Guide](QUICK_START.md#development)
 
 3. **Testing Deep Dive** (30 min)
    - Unit tests: `make test-unit`
    - Integration tests: `make test-integration`
    - Property-based tests: `make test-property`
    - Add tests for your new endpoint
-   - 📖 Read: [Testing Guide](docs/TESTING_GUIDE.md)
+   - 📖 Read: [Testing Guide](documentation/guides/TESTING_GUIDE.md)
 
 4. **Code Quality** (15 min)
    - Linting: `make lint`
    - Type checking: `mypy bookstore/`
    - Security scan: `make security-scan`
-   - 📖 Read: [Code Examples](examples/)
+   - 📖 Read: [Code Examples](development/examples/)
 
 **Next Steps**:
 - Contribute to the project
@@ -205,20 +205,20 @@ Whether you're a beginner or experienced developer, this roadmap will guide you 
    - Local production stack: `make docker-prod`
    - Environment configuration: Edit `.env.production`
    - SSL setup and domain configuration
-   - 📖 Read: [Docker Guide](docs/DOCKER_SETUP.md)
+   - 📖 Read: [Docker Guide](documentation/guides/DOCKER_SETUP.md)
 
 2. **Monitoring Setup** (25 min)
    - Access Grafana dashboards
    - Configure Prometheus metrics
    - Setup log aggregation with Loki
    - Health check endpoints
-   - 📖 Read: [Production Guide](docs/PRODUCTION_DEPLOYMENT.md)
+   - 📖 Read: [Production Guide](documentation/guides/PRODUCTION_DEPLOYMENT.md)
 
 3. **Security & Backup** (15 min)
    - Security headers and rate limiting
    - Database backup procedures: `make db-backup`
    - SSL certificate management
-   - 📖 Read: [Security Best Practices](docs/PRODUCTION_DEPLOYMENT.md#security)
+   - 📖 Read: [Security Best Practices](documentation/guides/PRODUCTION_DEPLOYMENT.md#security)
 
 **Next Steps**:
 - Setup CI/CD pipeline
@@ -236,28 +236,28 @@ Whether you're a beginner or experienced developer, this roadmap will guide you 
    - Docker Compose for different environments
    - Container security and optimization
    - Registry management with GitHub Container Registry
-   - 📖 Read: [Docker DevOps Guide](docs/DOCKER_DEVOPS_GUIDE.md)
+   - 📖 Read: [Docker DevOps Guide](documentation/guides/DOCKER_DEVOPS_GUIDE.md)
 
 2. **Kubernetes Deployment** (60 min)
    - Deploy to Kubernetes: `make k8s-deploy`
    - Understand manifests in `k8s/` directory
    - Auto-scaling configuration
    - Ingress and service mesh
-   - 📖 Read: [Kubernetes Manifests](k8s/)
+   - 📖 Read: [Kubernetes Manifests](deployment/k8s/)
 
 3. **CI/CD Pipeline** (45 min)
    - GitHub Actions workflows in `.github/workflows/`
    - Automated testing and security scanning
    - Multi-environment deployment
    - Release management
-   - 📖 Read: [CI/CD Setup](docs/CI_CD_SETUP.md)
+   - 📖 Read: [CI/CD Setup](documentation/guides/CI_CD_SETUP.md)
 
 4. **Monitoring & Observability** (30 min)
    - Prometheus metrics collection
    - Grafana dashboard configuration
    - Log aggregation with Loki and Promtail
    - Alerting and incident response
-   - 📖 Read: [Monitoring Setup](grafana/)
+   - 📖 Read: [Monitoring Setup](deployment/monitoring/)
 
 **Next Steps**:
 - Customize for your infrastructure
@@ -271,32 +271,32 @@ Whether you're a beginner or experienced developer, this roadmap will guide you 
 **Goal**: Use this project as a learning resource for modern development practices
 
 1. **Python & FastAPI Fundamentals**
-   - 📖 [FastAPI Cheatsheet](examples/fastapi_cheatsheet.md)
-   - 📖 [OOP Practice](examples/oop_practice.py)
-   - 📖 [Type Hints Advanced](examples/type_hints_advanced.py)
-   - 📖 [Decorators Guide](examples/decorators_advanced.py)
+   - 📖 [FastAPI Cheatsheet](development/examples/fastapi_cheatsheet.md)
+   - 📖 [OOP Practice](development/examples/oop_practice.py)
+   - 📖 [Type Hints Advanced](development/examples/type_hints_advanced.py)
+   - 📖 [Decorators Guide](development/examples/decorators_advanced.py)
 
 2. **Testing Methodologies**
-   - 📖 [Testing Cheatsheet](examples/testing_cheatsheet.md)
+   - 📖 [Testing Cheatsheet](development/examples/testing_cheatsheet.md)
    - 📖 [Property-Based Testing](tests/test_property_based.py)
    - 📖 [Performance Testing](tests/test_performance.py)
    - 📖 [Integration Testing](tests/test_api_integration.py)
 
 3. **DevOps & Infrastructure**
-   - 📖 [Docker Best Practices](docs/DOCKER_DEVOPS_GUIDE.md)
-   - 📖 [Kubernetes Deployment](k8s/)
+   - 📖 [Docker Best Practices](documentation/guides/DOCKER_DEVOPS_GUIDE.md)
+   - 📖 [Kubernetes Deployment](deployment/k8s/)
    - 📖 [CI/CD Pipelines](.github/workflows/)
-   - 📖 [Monitoring & Observability](grafana/)
+   - 📖 [Monitoring & Observability](deployment/monitoring/)
 
 4. **Production Readiness**
-   - 📖 [Security Practices](docs/PRODUCTION_DEPLOYMENT.md)
-   - 📖 [Performance Optimization](docs/TESTING_GUIDE.md)
-   - 📖 [Backup & Recovery](scripts/backup-script.sh)
-   - 📖 [Health Monitoring](scripts/production-health-check.sh)
+   - 📖 [Security Practices](documentation/guides/PRODUCTION_DEPLOYMENT.md)
+   - 📖 [Performance Optimization](documentation/guides/TESTING_GUIDE.md)
+   - 📖 [Backup & Recovery](development/scripts/backup-script.sh)
+   - 📖 [Health Monitoring](development/scripts/production-health-check.sh)
 
 **Learning Resources**:
-- 📚 [Learning Materials](docs/LEARNING_MATERIALS.md)
-- 🎯 [Task System Examples](examples/task_system.py)
+- 📚 [Learning Materials](documentation/guides/LEARNING_MATERIALS.md)
+- 🎯 [Task System Examples](development/examples/task_system.py)
 - 📊 [Performance Analysis](tests/test_performance.py)
 </details>
 
@@ -314,7 +314,7 @@ Whether you're a beginner or experienced developer, this roadmap will guide you 
 ### 🆘 Need Help?
 
 - **🐛 Found a bug?** → [Report it](https://github.com/your-org/bookstore-api/issues)
-- **❓ Have a question?** → Check [docs/](docs/) or [examples/](examples/)
+- **❓ Have a question?** → Check [documentation/](documentation/) or [development/examples/](development/examples/)
 - **💡 Want a feature?** → [Request it](https://github.com/your-org/bookstore-api/issues)
 - **🤝 Want to contribute?** → See [Contributing](#-contributing) section
 
@@ -516,10 +516,10 @@ Access monitoring at: `https://monitoring.yourdomain.com`
 make health
 
 # Run comprehensive health check
-./scripts/production-health-check.sh
+./development/scripts/production-health-check.sh
 
 # Continuous monitoring
-./scripts/production-health-check.sh monitor
+./development/scripts/production-health-check.sh monitor
 ```
 
 ## 🔒 Security Features
@@ -591,7 +591,7 @@ bookstore-api/
 │   └── testing.txt            # Testing dependencies
 ├── 📁 alembic/                # Database migrations
 ├── 📁 archive/                # Archived files
-├── 🐳 Dockerfile              # → deployment/docker/
+├── 🐳 deployment/docker/Dockerfile # Docker configuration
 ├── ⚙️ Makefile                # Development commands
 ├── 📋 alembic.ini             # Migration configuration
 ├── 📚 README.md               # This file
@@ -612,11 +612,11 @@ bookstore-api/
 
 ### Documentation
 - **API Docs**: Available at `/docs` endpoint
-- **Production Guide**: [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md)
-- **Docker Setup**: [docs/DOCKER_SETUP.md](docs/DOCKER_SETUP.md)
-- **CI/CD Guide**: [docs/CI_CD_SETUP.md](docs/CI_CD_SETUP.md)
-- **Testing Guide**: [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
-- **Project Structure**: [docs/PROJECT_STRUCTURE_DETAILED.md](docs/PROJECT_STRUCTURE_DETAILED.md)
+- **Production Guide**: [documentation/guides/PRODUCTION_DEPLOYMENT.md](documentation/guides/PRODUCTION_DEPLOYMENT.md)
+- **Docker Setup**: [documentation/guides/DOCKER_SETUP.md](documentation/guides/DOCKER_SETUP.md)
+- **CI/CD Guide**: [documentation/guides/CI_CD_SETUP.md](documentation/guides/CI_CD_SETUP.md)
+- **Testing Guide**: [documentation/guides/TESTING_GUIDE.md](documentation/guides/TESTING_GUIDE.md)
+- **Project Structure**: [documentation/guides/PROJECT_STRUCTURE_DETAILED.md](documentation/guides/PROJECT_STRUCTURE_DETAILED.md)
 
 ### Troubleshooting
 ```bash
@@ -627,7 +627,7 @@ make logs
 make health
 
 # Run diagnostics
-./scripts/production-health-check.sh
+./development/scripts/production-health-check.sh
 
 # View system metrics
 make metrics
@@ -642,7 +642,7 @@ make db-backup
 make db-restore BACKUP_FILE=/path/to/backup.sql
 
 # Run backup script
-./scripts/backup-script.sh
+./development/scripts/backup-script.sh
 
 # List available backups
 ls -la backups/
@@ -777,7 +777,7 @@ ls -la backups/
 ### Development Workflow
 ```bash
 # Setup development environment
-./scripts/setup-dev.sh
+./development/scripts/setup-dev.sh
 
 # Make changes and test
 make test
