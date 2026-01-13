@@ -13,6 +13,12 @@
     }
   ],
   "env": {
-    "FLASK_ENV": "production"
+    "FLASK_ENV": "production",
+    "VERCEL": "1"
+  },
+  "functions": {
+    "run.py": {
+      "maxDuration": 10
+    }
   }
 }
