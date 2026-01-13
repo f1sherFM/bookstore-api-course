@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request
 from app.models.node import Node
 from app.schemas.node_schema import node_schema, nodes_schema
 from app import db
+import os
 
 api_bp = Blueprint('api', __name__)
 
@@ -16,8 +17,28 @@ def get_roadmap():
     Returns only root nodes with their nested children.
     """
     try:
+        # Ensure database is initialized
+        from app import db
+        from app.models.node import Node
+        
+        # Check if database exists and has tables
+        try:
+            Node.query.first()
+        except Exception as db_error:
+            print(f"Database not ready: {db_error}")
+            # Try to initialize database
+            db.create_all()
+            from app.utils.seed_data import create_bookstore_roadmap
+            create_bookstore_roadmap()
+        
         # Get all root nodes (nodes without parent)
         root_nodes = Node.get_root_nodes()
+        
+        if not root_nodes:
+            # If no root nodes, try to seed data
+            from app.utils.seed_data import create_bookstore_roadmap
+            create_bookstore_roadmap()
+            root_nodes = Node.get_root_nodes()
         
         if not root_nodes:
             return jsonify({
@@ -38,6 +59,7 @@ def get_roadmap():
         }), 200
         
     except Exception as e:
+        print(f"Error in get_roadmap: {e}")
         return jsonify({
             'success': False,
             'error': str(e),
@@ -99,20 +121,40 @@ def get_node(node_id):
 
 @api_bp.route('/health', methods=['GET'])
 def health_check():
-    """Health check endpoint."""
+    """Health check endpoint with detailed diagnostics."""
     try:
-        # Test database connection
-        node_count = Node.query.count()
+        from app import db
+        from app.models.node import Node
+        
+        # Test database connection and table existence
+        try:
+            node_count = Node.query.count()
+            db_status = 'connected'
+        except Exception as db_error:
+            print(f"Database error in health check: {db_error}")
+            # Try to initialize database
+            try:
+                db.create_all()
+                from app.utils.seed_data import create_bookstore_roadmap
+                create_bookstore_roadmap()
+                node_count = Node.query.count()
+                db_status = 'initialized'
+            except Exception as init_error:
+                print(f"Failed to initialize database: {init_error}")
+                node_count = 0
+                db_status = 'error'
         
         return jsonify({
             'success': True,
             'status': 'healthy',
-            'database': 'connected',
+            'database': db_status,
             'node_count': node_count,
-            'message': 'Roadmap API is running'
+            'message': 'Roadmap API is running',
+            'environment': 'production' if os.environ.get('VERCEL') else 'development'
         }), 200
         
     except Exception as e:
+        print(f"Health check error: {e}")
         return jsonify({
             'success': False,
             'status': 'unhealthy',

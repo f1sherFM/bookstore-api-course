@@ -144,28 +144,47 @@ def create_app(config_name='development'):
         # This reads the model definitions and creates the corresponding database tables
         db.create_all()
         
-        # Seed the database with initial data if it's empty
-        # This ensures the API has data to serve when first started
-        from app.models.node import Node
-        try:
-            # Check if the database already has data
-            if Node.query.count() == 0:
-                # Import and run the seed data function
+        # For production (Vercel), we need to ensure data is always available
+        # since the temporary database gets reset
+        def ensure_data():
+            """Ensure database has data, seed if empty."""
+            from app.models.node import Node
+            try:
+                # Check if the database already has data
+                if Node.query.count() == 0:
+                    # Import and run the seed data function
+                    from app.utils.seed_data import create_bookstore_roadmap
+                    create_bookstore_roadmap()
+            except Exception as e:
+                # Handle database errors (like missing columns after model changes)
+                print(f"Database error: {e}")
+                print("Recreating database...")
+                
+                # Drop all tables and recreate them
+                # This is a development convenience - in production, you'd use migrations
+                db.drop_all()
+                db.create_all()
+                
+                # Seed the fresh database
                 from app.utils.seed_data import create_bookstore_roadmap
                 create_bookstore_roadmap()
-        except Exception as e:
-            # Handle database errors (like missing columns after model changes)
-            print(f"Database error: {e}")
-            print("Recreating database...")
-            
-            # Drop all tables and recreate them
-            # This is a development convenience - in production, you'd use migrations
-            db.drop_all()
-            db.create_all()
-            
-            # Seed the fresh database
-            from app.utils.seed_data import create_bookstore_roadmap
-            create_bookstore_roadmap()
+        
+        # Initialize data
+        ensure_data()
+        
+        # For production, add a before_request handler to ensure data exists
+        if config_name == 'production':
+            @app.before_request
+            def check_database():
+                """Ensure database has data before each request in production."""
+                from app.models.node import Node
+                try:
+                    if Node.query.count() == 0:
+                        ensure_data()
+                except:
+                    # If there's any database error, reinitialize
+                    db.create_all()
+                    ensure_data()
     
     # Return the configured Flask application
     return app
