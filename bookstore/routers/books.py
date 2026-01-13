@@ -1,21 +1,57 @@
 """
-Router for working with books
+Books Router - API Endpoints for Book Management
+
+This module defines all the API endpoints related to books in our bookstore.
+It handles operations like:
+- Listing and searching books
+- Getting detailed book information
+- Creating new books (admin only)
+- Updating existing books (admin only)
+- Deleting books (admin only)
+- Getting book statistics
+
+API Design Concepts for Beginners:
+
+1. REST API: We follow REST (Representational State Transfer) principles:
+   - GET /books/ - List all books
+   - GET /books/{id} - Get a specific book
+   - POST /books/ - Create a new book
+   - PUT /books/{id} - Update a book
+   - DELETE /books/{id} - Delete a book
+
+2. HTTP Status Codes:
+   - 200 OK: Request successful
+   - 201 Created: New resource created
+   - 404 Not Found: Resource doesn't exist
+   - 400 Bad Request: Invalid input
+   - 401 Unauthorized: Authentication required
+   - 403 Forbidden: Permission denied
+
+3. Query Parameters: Additional filters in the URL like ?author=Tolstoy&genre=Fiction
+
+4. Pagination: Breaking large result sets into smaller pages for better performance
+
+5. Authentication: Some endpoints require users to be logged in (dependencies)
 """
 
+# Import necessary modules
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import and_, or_, func
+from sqlalchemy.orm import Session, joinedload  # Database ORM
+from sqlalchemy import and_, or_, func  # SQL operations
 
-from ..database import get_db
-from ..models import Book, Author, Genre, Review
-from ..schemas import (
+# Import our custom modules
+from ..database import get_db  # Database session dependency
+from ..models import Book, Author, Genre, Review  # Database models
+from ..schemas import (  # Data validation schemas
     Book as BookSchema, BookCreate, BookUpdate, BookWithStats,
     BookSearchParams, BookSortBy, SortOrder, PaginatedResponse
 )
-from ..auth import get_current_active_user, get_current_superuser
+from ..auth import get_current_active_user, get_current_superuser  # Authentication
 from ..models import User
 
+# Create the router instance
+# This groups related endpoints together and allows us to add them to the main app
 router = APIRouter()
 
 
@@ -25,51 +61,77 @@ def get_books_query(
     sort_by: BookSortBy = BookSortBy.CREATED_AT,
     sort_order: SortOrder = SortOrder.DESC
 ):
-    """Base query for getting books with filtering and sorting"""
+    """
+    Build a database query for books with filtering and sorting
+    
+    This function creates a flexible database query that can:
+    - Search books by title, description, author, or genre
+    - Filter by price range, language, and availability
+    - Sort by different fields in ascending or descending order
+    - Use eager loading to prevent N+1 query problems
+    
+    Args:
+        db (Session): Database session
+        search_params (Optional[BookSearchParams]): Search and filter criteria
+        sort_by (BookSortBy): Field to sort by (title, price, date, etc.)
+        sort_order (SortOrder): Sort direction (ascending or descending)
+        
+    Returns:
+        Query: SQLAlchemy query object ready for execution
+        
+    For beginners: This is like building a complex search query for a library catalog.
+    You can search by title, filter by genre, sort by publication date, etc.
+    The function builds the database query step by step based on what filters are provided.
+    """
+    # Start with a base query that includes related data (authors and genres)
+    # joinedload prevents N+1 queries by loading related data in a single query
     query = db.query(Book).options(
-        joinedload(Book.authors),
-        joinedload(Book.genres)
+        joinedload(Book.authors),   # Load author information with each book
+        joinedload(Book.genres)     # Load genre information with each book
     )
     
+    # Apply search and filter parameters if provided
     if search_params:
-        # Search by title and description
+        # Text search in title and description
         if search_params.q:
-            search_term = f"%{search_params.q}%"
+            search_term = f"%{search_params.q}%"  # Add wildcards for partial matching
             query = query.filter(
-                or_(
-                    Book.title.ilike(search_term),
+                or_(  # OR condition - match either title OR description
+                    Book.title.ilike(search_term),        # Case-insensitive LIKE
                     Book.description.ilike(search_term)
                 )
             )
         
-        # Filter by author
+        # Filter by author name
         if search_params.author:
+            # Join with authors table to search by author name
             query = query.join(Book.authors).filter(
                 Author.name.ilike(f"%{search_params.author}%")
             )
         
-        # Filter by genre
+        # Filter by genre name
         if search_params.genre:
+            # Join with genres table to search by genre name
             query = query.join(Book.genres).filter(
                 Genre.name.ilike(f"%{search_params.genre}%")
             )
         
-        # Filter by price
+        # Price range filtering
         if search_params.min_price is not None:
             query = query.filter(Book.price >= search_params.min_price)
         
         if search_params.max_price is not None:
             query = query.filter(Book.price <= search_params.max_price)
         
-        # Filter by language
+        # Language filtering
         if search_params.language:
             query = query.filter(Book.language == search_params.language)
         
-        # Only available books
+        # Availability filtering (only show available books)
         if search_params.available_only:
             query = query.filter(Book.is_available == True)
     
-    # Sorting
+    # Apply sorting
     if sort_by == BookSortBy.TITLE:
         order_field = Book.title
     elif sort_by == BookSortBy.PRICE:
@@ -77,16 +139,18 @@ def get_books_query(
     elif sort_by == BookSortBy.PUBLICATION_DATE:
         order_field = Book.publication_date
     elif sort_by == BookSortBy.RATING:
-        # Sorting by rating requires subquery
+        # Sorting by average rating requires a subquery
+        # This calculates the average rating for each book
         avg_rating = db.query(func.avg(Review.rating)).filter(Review.book_id == Book.id).scalar_subquery()
         order_field = avg_rating
     else:
-        order_field = Book.created_at
+        order_field = Book.created_at  # Default sort by creation date
     
+    # Apply sort direction
     if sort_order == SortOrder.DESC:
-        query = query.order_by(order_field.desc())
+        query = query.order_by(order_field.desc())  # Newest/highest first
     else:
-        query = query.order_by(order_field.asc())
+        query = query.order_by(order_field.asc())   # Oldest/lowest first
     
     return query
 

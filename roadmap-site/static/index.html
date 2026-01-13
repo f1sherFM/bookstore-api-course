@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookStore API Roadmap</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        
+        .api-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .response {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .tree-node {
+            margin-left: 20px;
+            border-left: 2px solid #ddd;
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .node-title {
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .node-title a {
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+        
+        .node-title a:hover {
+            transform: translateX(2px);
+        }
+        
+        .node-description {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .node-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .node-type.root { background: #e74c3c; color: white; }
+        .node-type.basic { background: #2ecc71; color: white; }
+        .node-type.intermediate { background: #f39c12; color: white; }
+        .node-type.advanced { background: #9b59b6; color: white; }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐍 BookStore API - Learning Roadmap</h1>
+        <p>Interactive roadmap with direct links to GitHub repository</p>
+        <p><a href="https://github.com/f1sherFM/bookstore-api-course" target="_blank" style="color: white; text-decoration: underline;">📚 View Repository</a></p>
+    </div>
+
+    <div class="api-section">
+        <h2>🔗 GitHub Integration</h2>
+        <p>This roadmap is directly connected to the <strong>BookStore API</strong> repository. Each learning topic links to specific files and examples in the codebase:</p>
+        <ul>
+            <li><strong>📁 Basic Syntax</strong> → Core application files and models</li>
+            <li><strong>🏗️ Data Structures</strong> → Implementation examples in routers</li>
+            <li><strong>🎯 OOP Concepts</strong> → Class definitions and patterns</li>
+            <li><strong>⚡ Advanced Topics</strong> → Authentication, async patterns</li>
+            <li><strong>🧪 Testing</strong> → Complete test suite with multiple strategies</li>
+            <li><strong>🚀 DevOps</strong> → Docker, Kubernetes, CI/CD configurations</li>
+        </ul>
+        <p><em>Click on any roadmap item below to jump directly to the relevant code!</em></p>
+    </div>
+
+    <div class="api-section">
+        <h2>🔍 API Endpoints</h2>
+        
+        <div class="endpoint">GET /api/v1/health</div>
+        <button onclick="testHealth()">Test Health Check</button>
+        <div id="health-response" class="response" style="display: none;"></div>
+        
+        <div class="endpoint">GET /api/v1/roadmap</div>
+        <button onclick="testRoadmap()">Get Roadmap Tree</button>
+        <div id="roadmap-response" class="response" style="display: none;"></div>
+        
+        <div class="endpoint">GET /api/v1/nodes</div>
+        <button onclick="testNodes()">Get All Nodes (Flat)</button>
+        <div id="nodes-response" class="response" style="display: none;"></div>
+    </div>
+
+    <div class="api-section">
+        <h2>🌳 Roadmap Tree Visualization</h2>
+        <button onclick="loadRoadmapTree()">Load Interactive Tree</button>
+        <div id="tree-container"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api/v1';
+
+        async function makeRequest(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`);
+                const data = await response.json();
+                return { success: true, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function testHealth() {
+            const responseDiv = document.getElementById('health-response');
+            responseDiv.style.display = 'block';
+            responseDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            const result = await makeRequest('/health');
+            
+            if (result.success) {
+                responseDiv.innerHTML = JSON.stringify(result.data, null, 2);
+            } else {
+                responseDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+            }
+        }
+
+        async function testRoadmap() {
+            const responseDiv = document.getElementById('roadmap-response');
+            responseDiv.style.display = 'block';
+            responseDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            const result = await makeRequest('/roadmap');
+            
+            if (result.success) {
+                responseDiv.innerHTML = JSON.stringify(result.data, null, 2);
+            } else {
+                responseDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+            }
+        }
+
+        async function testNodes() {
+            const responseDiv = document.getElementById('nodes-response');
+            responseDiv.style.display = 'block';
+            responseDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            const result = await makeRequest('/nodes');
+            
+            if (result.success) {
+                responseDiv.innerHTML = JSON.stringify(result.data, null, 2);
+            } else {
+                responseDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+            }
+        }
+
+        async function loadRoadmapTree() {
+            const container = document.getElementById('tree-container');
+            container.innerHTML = '<div class="loading">Loading roadmap tree...</div>';
+            
+            const result = await makeRequest('/roadmap');
+            
+            if (result.success && result.data.data) {
+                container.innerHTML = '';
+                result.data.data.forEach(rootNode => {
+                    container.appendChild(createTreeNode(rootNode));
+                });
+            } else {
+                container.innerHTML = `<div class="error">Failed to load roadmap tree</div>`;
+            }
+        }
+
+        function createTreeNode(node) {
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'tree-node';
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'node-title';
+            
+            // Make title clickable if github_url exists
+            if (node.github_url) {
+                const linkElement = document.createElement('a');
+                linkElement.href = node.github_url;
+                linkElement.target = '_blank';
+                linkElement.style.textDecoration = 'none';
+                linkElement.style.color = 'inherit';
+                linkElement.innerHTML = `
+                    ${node.title} 
+                    <span class="node-type ${node.node_type}">${node.node_type}</span>
+                    <span style="margin-left: 8px; color: #007bff; font-size: 12px;">🔗 GitHub</span>
+                `;
+                linkElement.addEventListener('mouseover', function() {
+                    this.style.backgroundColor = '#f8f9fa';
+                    this.style.borderRadius = '4px';
+                    this.style.padding = '2px 4px';
+                });
+                linkElement.addEventListener('mouseout', function() {
+                    this.style.backgroundColor = 'transparent';
+                    this.style.padding = '0';
+                });
+                titleDiv.appendChild(linkElement);
+            } else {
+                titleDiv.innerHTML = `
+                    ${node.title} 
+                    <span class="node-type ${node.node_type}">${node.node_type}</span>
+                `;
+            }
+            
+            const descDiv = document.createElement('div');
+            descDiv.className = 'node-description';
+            descDiv.textContent = node.description || '';
+            
+            nodeDiv.appendChild(titleDiv);
+            if (node.description) {
+                nodeDiv.appendChild(descDiv);
+            }
+            
+            // Recursively add children
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(child => {
+                    nodeDiv.appendChild(createTreeNode(child));
+                });
+            }
+            
+            return nodeDiv;
+        }
+
+        // Load tree on page load
+        window.addEventListener('load', () => {
+            setTimeout(loadRoadmapTree, 500);
+        });
+    </script>
+</body>
+</html>
