@@ -2,18 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.py",
+      "src": "api/simple.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "api/index.py"
+      "dest": "api/simple.py"
     }
-  ],
-  "env": {
-    "FLASK_ENV": "production",
-    "VERCEL": "1"
-  }
+  ]
 }
