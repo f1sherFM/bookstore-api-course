@@ -20,6 +20,11 @@ import os
 config_name = 'production' if os.environ.get('VERCEL') else 'development'
 app = create_app(config_name)
 
+# Add a simple test endpoint for Vercel debugging
+@app.route('/test')
+def test():
+    return {'status': 'ok', 'message': 'Flask app is running on Vercel'}
+
 # This block only runs when the file is executed directly (not imported)
 # It's a Python convention to use this pattern for executable scripts
 if __name__ == '__main__':
